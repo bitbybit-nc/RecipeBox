@@ -10,5 +10,8 @@ npm-debug.*
 *.orig.*
 web-build/
 
+google-services.json
+GoogleService-Info.plist
+
 # macOS
 .DS_Store

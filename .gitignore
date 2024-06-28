@@ -9,6 +9,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+old.*
 
 google-services.json
 GoogleService-Info.plist

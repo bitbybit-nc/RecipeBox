@@ -4,7 +4,7 @@ module.exports = ({ config }) => {
     expo: {
       android: {
         googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
-        bundleIdentifier: "com.bitbybitnorthcoders.RecipeBox",
+        package: "com.bitbybitnorthcoders.RecipeBox",
       },
       ios: {
         googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,

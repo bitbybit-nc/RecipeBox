@@ -13,17 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.bitbybitnorthcoders.RecipeBox"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "googleServicesFile": "./google-services.json",
-      "package": "com.bitbybitnorthcoders.RecipeBox"
+      }
     },
     "web": {
       "bundler": "metro",

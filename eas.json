@@ -8,6 +8,10 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "GOOGLE_SERVICES_JSON": "/Users/expo/workingdir/environment-secrets/d68f237d-b757-4597-a198-ceeb62bc5d45",
+        "GOOGLE_SERVICES_PLIST": "/Users/expo/workingdir/environment-secrets/ab94247b-5850-49ae-b6f3-afafe1df3d2e"
       }
     },
     "preview": {

@@ -3,11 +3,13 @@ module.exports = ({ config }) => {
     ...config,
     expo: {
       android: {
-        googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+        googleServicesFile:
+          process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
         package: "com.bitbybitnorthcoders.RecipeBox",
       },
       ios: {
-        googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
+        googleServicesFile:
+          process.env.GOOGLE_SERVICES_PLIST ?? "./GoogleService-Info.plist",
         bundleIdentifier: "com.bitbybitnorthcoders.RecipeBox",
       },
       extra: {

@@ -10,8 +10,8 @@
         "simulator": true
       },
       "env": {
-        "GOOGLE_SERVICES_JSON": "/Users/expo/workingdir/environment-secrets/d68f237d-b757-4597-a198-ceeb62bc5d45",
-        "GOOGLE_SERVICES_PLIST": "/Users/expo/workingdir/environment-secrets/ab94247b-5850-49ae-b6f3-afafe1df3d2e"
+        "GOOGLE_SERVICES_JSON": "/Users/expo/workingdir/environment-secrets/8d3f2852-3384-4d03-8d4a-ab664b477eb5",
+        "GOOGLE_SERVICES_PLIST": "/Users/expo/workingdir/environment-secrets/4900ffd7-f7de-4bde-af3c-0261a99a15fd"
       }
     },
     "preview": {

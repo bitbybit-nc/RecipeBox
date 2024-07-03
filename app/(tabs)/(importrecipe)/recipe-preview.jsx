@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRoute } from "expo-router";
+import { Link, useLocalSearchParams, useRoute, Stack } from "expo-router";
 import {
   StyleSheet,
   View,
@@ -12,6 +12,7 @@ import {
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
+import { FA6Style } from "@expo/vector-icons/build/FontAwesome6";
 
 export default function RecipePreview() {
   const params = useLocalSearchParams();
@@ -123,11 +124,13 @@ export default function RecipePreview() {
           placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         />
       </View>
-      <Button
-        // onPress={handleRecipeSubmit}
+      {/* <Button
+        // onPress={handleRecipeSubmit(recipe_id)}
         title="Submit Recipe"
         accessibilityLabel="recipe-submission-button"
-      />
+      /> */}
+      <Link href = '/recipe-card' >Submit Recipe</Link>
+
     </View>
   );
 }
@@ -136,7 +139,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: "left",
     margin: 10,
-    paddingTop: 50,
+    paddingTop: 20,
   },
   tinyLogo: {
     width: 50,

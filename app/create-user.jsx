@@ -40,13 +40,23 @@ export default function SigninPage() {
           createUser.user.uid +
           ".jpg"
       );
-      await reference.putFile(image);
-      const url = await reference.getDownloadURL();
 
-      await createUser.user.updateProfile({
-        displayName: name,
-        photoURL: url,
-      });
+      if (!image) {
+        await createUser.user.updateProfile({
+          displayName: name,
+          photoURL:
+            "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Users%2Fplaceholder.png?alt=media&token=6fec34d3-f856-4565-a218-f822ca392a70",
+        });
+      } else {
+        await reference.putFile(image);
+        const url = await reference.getDownloadURL();
+
+        await createUser.user.updateProfile({
+          displayName: name,
+          photoURL: url,
+        });
+      }
+
       await firestore().collection("Users").add({
         uid: createUser.user.uid,
         username: username,
@@ -54,9 +64,9 @@ export default function SigninPage() {
 
       console.log("REGISTERED");
 
-      router.replace("/(tabs)");
-      setErrorToggle(false);
       setIsLoading(false);
+      setErrorToggle(false);
+      router.replace("/(tabs)");
     } catch (error) {
       console.log(error);
 
@@ -82,7 +92,7 @@ export default function SigninPage() {
       quality: 1,
     });
 
-    console.log(result.assets[0].uri);
+    console.log(result);
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);

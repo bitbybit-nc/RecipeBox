@@ -8,7 +8,7 @@ export default function ImportRecipePage() {
     const router = useRouter();
 
     function handleSubmit() {
-        router.push({ pathname: "../pages/recipe-preview", params: { url } });
+        router.push({ pathname: "/recipe-preview", params: { url } });
     }
 
     return (
@@ -19,7 +19,7 @@ export default function ImportRecipePage() {
                       height: 30,
                       fontSize: 13,
                   }}
-                placeholder='Insert recipe URL here'
+                placeholder='Insert recipe URL here - index.jsx'
                 value={url}
                 onChangeText={setUrl}
             />

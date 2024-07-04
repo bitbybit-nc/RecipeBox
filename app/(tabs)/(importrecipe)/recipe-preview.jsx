@@ -81,10 +81,13 @@ export default function RecipePreview() {
       .collection("Recipes")
       .add(newRecipe)
       .then((result) => setRecipeId(result._documentPath._parts[1]));
-  }
 
-  useEffect(() => {
-    router.push({ pathname: "/recipe-card", params: { recipeId } })
+    }
+    
+    useEffect(() => {
+      if (recipeId !== null) {
+        router.push({ pathname: "/recipe-card", params: { recipeId } })
+      }
   }, [recipeId]);
 
   const pickImage = async () => {

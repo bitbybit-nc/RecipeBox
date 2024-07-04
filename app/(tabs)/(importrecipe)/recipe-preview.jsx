@@ -81,17 +81,12 @@ export default function RecipePreview() {
             const result = await firestore()
                 .collection("Recipes")
                 .add(newRecipe);
-            const newRecipeId = result.id;
-            setRecipeId(newRecipeId);
-            router.push({
-                pathname: "/recipe-card",
-                params: { recipeId: newRecipeId },
-            });
-        } catch {
-            () => err;
+            const recipeId = result.id;
+            router.push({ pathname: "/recipe-card", params: { recipeId } });
+        } catch (err) {
+            console.log(err);
         }
     }
-
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -122,7 +117,7 @@ export default function RecipePreview() {
     //   });
     // }
 
-    console.log(recipeId);
+    // console.log(recipeId);
     return (
         <ScrollView>
             <View style={styles.container}>

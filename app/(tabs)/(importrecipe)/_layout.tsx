@@ -26,7 +26,7 @@ function Layout() {
       <Stack.Screen
         name="recipe-card"
         options={{
-          headerShown: true,
+          headerShown: false,
           title: "Recipe Card",
         }}
       />

@@ -13,36 +13,53 @@ import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 
 export default function RecipeCard() {
-    const  params  = useLocalSearchParams();
+    const params = useLocalSearchParams();
     const router = useRouter();
     const [currentRecipe, setCurrentRecipe] = useState([]);
     const [dietaryImages, setDietaryImages] = useState([]);
 
     useEffect(() => {
-        firestore()
-            .collection("Dietary_needs")
-            .get()
-            .then((dietaryCategory) => {
-                const images = {};
+        if (params.recipeId) {
+            firestore()
+                .collection("Dietary_needs")
+                .get()
+                .then((dietaryCategory) => {
+                    const images = {};
 
-                dietaryCategory.forEach((doc) => {
-                    images[doc._data.slug] = doc._data.image_url;
-                });
-                setDietaryImages(images);
-            })
-            .catch((err) => err);
+                    dietaryCategory.forEach((doc) => {
+                        images[doc._data.slug] = doc._data.image_url;
+                    });
+                    setDietaryImages(images);
+                })
+                .catch((err) => err);
 
-        firestore()
-            .collection("Recipes")
-            .doc(params)
-            .get()
-            .then((result) => {
-                setCurrentRecipe(result._data);
-            })
-            .catch((err) => err);
-    }, []);
+            firestore()
+                .collection("Recipes")
+                .doc(params.recipeId)
+                .get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        setCurrentRecipe(doc._data);
+                    } else {
+                        console.log("no doc");
+                    }
+                })
+                .catch((err) => err);
+        }
+    }, [params.recipeId]);
 
-    console.log(params)
+
+    const handleEdit = () => {
+        if (currentRecipe) {
+            router.push({
+                pathname: "/edit-recipe-card",
+                params: {
+                    ...currentRecipe,
+                    recipeId: params.recipeId,
+                },
+            });
+        }
+    }
 
     return (
         <View
@@ -55,7 +72,7 @@ export default function RecipeCard() {
                 </Text>
                 <Button
                     title='Edit'
-                    onPress={() =>  router.push({ pathname: "/edit-recipe-card", params:  currentRecipe  })}
+                    onPress={handleEdit}
                     style={styles.editButton}
                 />
             </View>

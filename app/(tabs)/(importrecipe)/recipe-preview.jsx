@@ -33,7 +33,7 @@ export default function RecipePreview() {
   const [dietaryOptions, setDietaryOptions] = useState([]);
   const [selected, setSelected] = useState([]);
   const [image, setImage] = useState(null);
-  const [recipeId, setRecipeId] = useState(null)
+  const [recipeId, setRecipeId] = useState(null);
   const [newRecipe, setNewRecipe] = useState({
     category: [],
     cook_time: "",
@@ -77,10 +77,15 @@ export default function RecipePreview() {
   }
 
   function handleRecipeSubmit() {
-    firestore().collection("Recipes").add(newRecipe)
-    .then((result) => setRecipeId(result._documentPath._parts[1]))
-    router.push({ pathname: "/recipe-card", params: {recipeId}} );
+    firestore()
+      .collection("Recipes")
+      .add(newRecipe)
+      .then((result) => setRecipeId(result._documentPath._parts[1]));
   }
+
+  useEffect(() => {
+    router.push({ pathname: "/recipe-card", params: { recipeId } })
+  }, [recipeId]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -170,13 +175,6 @@ export default function RecipePreview() {
             placeholder="Categories"
             onChangeText={(text) => handleInput("category", text)}
           />
-          {/* <TextInput
-            style={{
-              backgroundColor: "#dedede",
-            }}
-            placeholder="URL"
-            onChangeText={(text) => handleInput("recipe_img_url", text)}
-          /> */}
         </View>
         <View>
           <Text

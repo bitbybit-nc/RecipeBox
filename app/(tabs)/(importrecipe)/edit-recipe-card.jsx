@@ -22,6 +22,8 @@ function editRecipeCard({}) {
         ? params.dietary_needs.split(",")
         : [];
     const [dietaryImages, setDietaryImages] = useState([]);
+    const [selectedDietaryNeeds, setSelectedDietaryNeeds] =
+        useState(dietaryNeedsArray);
 
     const [title, setTitle] = useState(params.title || "");
     const [sourceUrl, setSourceUrl] = useState(params.source_url || "");
@@ -38,7 +40,7 @@ function editRecipeCard({}) {
             .then((dietaryCategory) => {
                 const images = {};
                 dietaryCategory.forEach((doc) => {
-                    images[doc._data.slug] = doc._data.image_url;
+                    images[doc._data.display_name] = doc._data.image_url;
                 });
                 setDietaryImages(images);
             })
@@ -60,7 +62,7 @@ function editRecipeCard({}) {
             .doc(params.recipeId)
             .update(updatedRecipe)
             .then(() => {
-                const recipeId = params.recipeId
+                const recipeId = params.recipeId;
                 Alert.alert(
                     "Success",
                     "Recipe updated successfully",
@@ -106,7 +108,10 @@ function editRecipeCard({}) {
                                             onPress: () =>
                                                 router.push({
                                                     pathname: "/recipe-card",
-                                                    params: { recipeId: 'LQM1aJAUX3DAWsTh40Z8' },
+                                                    params: {
+                                                        recipeId:
+                                                            "LQM1aJAUX3DAWsTh40Z8",
+                                                    },
                                                 }),
                                         },
                                     ],
@@ -121,7 +126,6 @@ function editRecipeCard({}) {
             { cancelable: true }
         );
     };
-
     return (
         <View style={styles.container}>
             <TextInput
@@ -144,8 +148,8 @@ function editRecipeCard({}) {
                         { flexDirection: "row" },
                     ]}
                 >
-                    {dietaryNeedsArray &&
-                        dietaryNeedsArray.map((dietaryOption, index) => (
+                    {selectedDietaryNeeds &&
+                        selectedDietaryNeeds.map((dietaryOption, index) => (
                             <View className='mr-2' key={index}>
                                 <Image
                                     style={styles.tinyLogo}
@@ -155,6 +159,14 @@ function editRecipeCard({}) {
                                 />
                             </View>
                         ))}
+                </View>
+                <View>
+                    <MultipleSelectList
+                        setSelected={setSelectedDietaryNeeds}
+                        data={() => Object.keys(dietaryImages)}
+                        save='name'
+                        defaultOption={selectedDietaryNeeds}
+                    />
                 </View>
             </View>
             <View>

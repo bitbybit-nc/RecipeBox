@@ -11,12 +11,14 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
+import { MultipleSelectList } from "react-native-dropdown-select-list";
 
 export default function RecipeCard() {
     const params = useLocalSearchParams();
     const router = useRouter();
     const [currentRecipe, setCurrentRecipe] = useState([]);
     const [dietaryImages, setDietaryImages] = useState([]);
+    const [selectedDietaryNeeds, setSelectedDietaryNeeds] = useState([]);
 
     useEffect(() => {
         if (params.recipeId) {
@@ -27,7 +29,7 @@ export default function RecipeCard() {
                     const images = {};
 
                     dietaryCategory.forEach((doc) => {
-                        images[doc._data.slug] = doc._data.image_url;
+                        images[doc._data.display_name] = doc._data.image_url;
                     });
                     setDietaryImages(images);
                 })
@@ -39,7 +41,9 @@ export default function RecipeCard() {
                 .get()
                 .then((doc) => {
                     if (doc.exists) {
-                        setCurrentRecipe(doc._data);
+                        const recipeData = doc.data();
+                        setCurrentRecipe(recipeData);
+                        setSelectedDietaryNeeds(recipeData.dietary_needs || []);
                     } else {
                         console.log("no doc");
                     }
@@ -47,7 +51,6 @@ export default function RecipeCard() {
                 .catch((err) => err);
         }
     }, [params.recipeId]);
-
 
     const handleEdit = () => {
         if (currentRecipe) {
@@ -59,7 +62,7 @@ export default function RecipeCard() {
                 },
             });
         }
-    }
+    };
 
     return (
         <View

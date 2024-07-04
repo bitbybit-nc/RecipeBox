@@ -19,6 +19,7 @@ function editRecipeCard({}) {
     const dietaryNeedsArray = params.dietary_needs ? params.dietary_needs.split(',') : [];
     const [dietaryImages, setDietaryImages] = useState([]);
 
+    console.log(params)
     useEffect(() => {
         firestore()
             .collection("Dietary_needs")

@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 
 export default function RecipeCard() {
-    // const  params  = useLocalSearchParams();
+    const  params  = useLocalSearchParams();
     const router = useRouter();
     const [currentRecipe, setCurrentRecipe] = useState([]);
     const [dietaryImages, setDietaryImages] = useState([]);
@@ -34,7 +34,7 @@ export default function RecipeCard() {
 
         firestore()
             .collection("Recipes")
-            .doc(`LQM1aJAUX3DAWsTh40Z8`)
+            .doc(params)
             .get()
             .then((result) => {
                 setCurrentRecipe(result._data);
@@ -42,10 +42,8 @@ export default function RecipeCard() {
             .catch((err) => err);
     }, []);
 
+    console.log(params)
 
-
-
-    // console.log(dietaryImages['Nut_free'])
     return (
         <View
             style={styles.mainContainer}

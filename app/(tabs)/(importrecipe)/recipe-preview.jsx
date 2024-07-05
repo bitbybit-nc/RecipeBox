@@ -16,6 +16,7 @@ import {
   item,
   Pressable,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
@@ -33,7 +34,9 @@ export default function RecipePreview() {
   const [dietaryOptions, setDietaryOptions] = useState([]);
   const [selected, setSelected] = useState([]);
   const [image, setImage] = useState(null);
-  const [recipeId, setRecipeId] = useState(null);
+  // const [recipeId, setRecipeId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [newRecipe, setNewRecipe] = useState({
     category: [],
     cook_time: "",
@@ -50,16 +53,15 @@ export default function RecipePreview() {
   });
 
   useEffect(() => {
-    firestore()
-      .collection("Dietary_needs")
-      .get()
-      .then((result) => {
-        const options = result.docs.map((doc) => ({
-          name: doc._data.display_name,
-          imgUrl: doc._data.image_url,
-        }));
-        setDietaryOptions(options);
-      });
+    const fetchDietaryOptions = async () => {
+      const result = await firestore().collection("Dietary_needs").get();
+      const options = result.docs.map((doc) => ({
+        name: doc._data.slug,
+        imgUrl: doc._data.image_url,
+      }));
+      setDietaryOptions(options);
+    };
+    fetchDietaryOptions();
   }, []);
 
   useEffect(() => {
@@ -76,20 +78,15 @@ export default function RecipePreview() {
     });
   }
 
-  function handleRecipeSubmit() {
-    firestore()
-      .collection("Recipes")
-      .add(newRecipe)
-      .then((result) => setRecipeId(result._documentPath._parts[1]));
-
+  async function handleRecipeSubmit() {
+    try {
+      const result = await firestore().collection("Recipes").add(newRecipe);
+      const recipeId = result.id;
+      router.push({ pathname: "/recipe-card", params: { recipeId } });
+    } catch (err) {
+      console.log(err);
     }
-    
-    useEffect(() => {
-      if (recipeId !== null) {
-        router.push({ pathname: "/recipe-card", params: { recipeId } })
-      }
-  }, [recipeId]);
-
+  }
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -104,133 +101,125 @@ export default function RecipePreview() {
         `Users/${user._user.uid}/${new Date().getTime()}.jpg`
       );
 
-      await reference.putFile(imageUri);
-      const imageUrlDownload = await reference.getDownloadURL();
-      setImage(imageUrlDownload);
+      try {
+        setIsLoading(true);
+        await reference.putFile(imageUri);
+        const imageUrlDownload = await reference.getDownloadURL();
+        setImage(imageUrlDownload);
+        setIsLoading(false);
+      } catch (err) {
+        console.log(err);
+      }
     }
   };
 
   return (
     <ScrollView>
-      <View style={styles.container}>
+      <View className = "m-2">
         <View>
-          {image ? (
-            <Image source={{ uri: image }} className="w-10 h-10 self-center " />
-          ) : null}
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#FB923C" />
+          ) : (
+            image && (
+              <View>
+                <Image
+                  source={{ uri: image }}
+                  className="w-4/5 h-44 self-center rounded-md"
+                />
+                <View>
+                  <Pressable className = "bg-zinc-300" onPress={pickImage}>
+                    <Text>Replace Btn</Text>
+                  </Pressable>
+                {/* <Button
+                  title="Replace Btn"
+                  onPress={pickImage}
+                /> */}
+                </View>
+              </View>
+            )
+          )}
         </View>
-        <Text
-          style={{
-            marginTop: 10,
-            fontSize: 15,
-          }}
-        >
-          Recipe Title:
-        </Text>
+        <View>
+          {image ? null : (
+            <Button
+              title="Add Recipe Image from Camera Roll"
+              onPress={pickImage}
+            />
+          )}
+
+          {/* {image && <Image source={{ uri: image }} style={styles.image} />} */}
+        </View>
+        <Text className="text-xs">Recipe Title</Text>
         <TextInput
-          style={{ backgroundColor: "#dedede" }}
+          className="bg-zinc-200 rounded-md p-1"
           placeholder="Recipe Title"
           onChangeText={(text) => handleInput("title", text)}
         />
-        <Text>URL: {params.url}</Text>
         <View>
-          <Button title="Pick an image from camera roll" onPress={pickImage} />
-          {image && <Image source={{ uri: image }} style={styles.image} />}
+          <Text className="text-xs">Original Source</Text>
+          <Text className="bg-zinc-200 rounded-md p-1 text-zinc-500">
+            {params.url}
+          </Text>
         </View>
-        <Text>Dietary info</Text>
-        <FlatList
-          data={selected}
-          renderItem={({ item }) => {
-            return dietaryOptions.map((option) => {
-              if (option.name === item) {
-                return (
-                  <View>
-                    <Image
-                      style={styles.tinyLogo}
-                      source={{ uri: option.imgUrl }}
-                    />
-                  </View>
-                );
-              }
-            });
-          }}
-          keyExtractor={(item) => item.name}
-          horizontal
-          style={styles.selectedList}
-        />
+        <Text className="text-xs">Dietary info</Text>
+        <View
+          className="flex-row items-center justify-start mb-4"
+          style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}
+        >
+          {dietaryOptions &&
+            dietaryOptions.map((option, index) => {
+              return selected.map((element) => {
+                if (option.name === element) {
+                  return (
+                    <View>
+                      <Image
+                        style={styles.tinyLogo}
+                        key={index}
+                        source={{ uri: option.imgUrl }}
+                      />
+                    </View>
+                  );
+                }
+              });
+            })}
+        </View>
+
         <MultipleSelectList
           setSelected={(val) => setSelected(val)}
           data={dietaryOptions.map((option) => option.name)}
           save="name"
+          search={false}
         />
+
         <View>
-          <Text
-            style={{
-              marginTop: 10,
-              fontSize: 15,
-            }}
-          >
-            Categories:
-          </Text>
+          <Text className="text-xs">Categories</Text>
           <TextInput
-            style={{
-              backgroundColor: "#dedede",
-            }}
+            className="bg-zinc-200 rounded-md p-1"
             placeholder="Categories"
             onChangeText={(text) => handleInput("category", text)}
           />
         </View>
         <View>
-          <Text
-            style={{
-              marginTop: 10,
-              fontSize: 15,
-            }}
-          >
-            Cooking time:
-          </Text>
+          <Text className="text-xs">Cooking time</Text>
           <TextInput
-            style={{
-              backgroundColor: "#dedede",
-            }}
-            placeholder="cooking time"
+            className="bg-zinc-200 rounded-md p-1"
+            placeholder="Cooking time"
             onChangeText={(text) => handleInput("cook_time", text)}
           />
         </View>
         <View>
-          <Text
-            style={{
-              marginTop: 10,
-              fontSize: 15,
-            }}
-          >
-            Ingredient List:
-          </Text>
+          <Text className="text-xs">Ingredient List</Text>
           <TextInput
-            style={{
-              backgroundColor: "#dedede",
-              height: 100,
-              fontSize: 15,
-            }}
+            className="bg-zinc-200 rounded-md p-1"
             multiline={true}
             placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
             onChangeText={(text) => handleInput("ingredients", text)}
           />
         </View>
         <View>
-          <Text
-            style={{
-              marginTop: 10,
-              fontSize: 15,
-            }}
-          >
-            Cooking instructions
-          </Text>
+          <Text className="text-xs">Cooking instructions</Text>
           <TextInput
-            style={{
-              backgroundColor: "#dedede",
-              height: 100,
-              fontSize: 13,
-            }}
+            className="bg-zinc-200 rounded-md p-1"
             multiline={true}
             placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
             onChangeText={(text) => handleInput("cooking_method", text)}
@@ -250,10 +239,10 @@ export default function RecipePreview() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: "left",
-    margin: 10,
-    paddingTop: 20,
+  dietaryImagesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   tinyLogo: {
     width: 50,

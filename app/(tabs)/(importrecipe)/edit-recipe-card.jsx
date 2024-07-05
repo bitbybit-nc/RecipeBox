@@ -10,6 +10,7 @@ import {
     Image,
     Item,
     Alert,
+    ScrollView,
 } from "react-native";
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ function editRecipeCard({}) {
         ? params.dietary_needs.split(",")
         : [];
     const [dietaryImages, setDietaryImages] = useState([]);
+    const [reselectedDietaryImages, setReselectedDietaryImages] = useState([]);
     const [selectedDietaryNeeds, setSelectedDietaryNeeds] =
         useState(dietaryNeedsArray);
 
@@ -40,7 +42,7 @@ function editRecipeCard({}) {
             .then((dietaryCategory) => {
                 const images = {};
                 dietaryCategory.forEach((doc) => {
-                    images[doc._data.display_name] = doc._data.image_url;
+                    images[doc._data.slug] = doc._data.image_url;
                 });
                 setDietaryImages(images);
             })
@@ -54,9 +56,10 @@ function editRecipeCard({}) {
             cook_time: cookTime,
             ingredients,
             cooking_method: cookingMethod,
-            dietary_needs: dietaryNeedsArray,
+            dietary_needs: selectedDietaryNeeds,
         };
 
+        console.log(reselectedDietaryImages)
         firestore()
             .collection("Recipes")
             .doc(params.recipeId)
@@ -127,109 +130,115 @@ function editRecipeCard({}) {
         );
     };
     return (
-        <View style={styles.container}>
-            <TextInput
-                style={{ backgroundColor: "#dedede" }}
-                value={title}
-                onChangeText={setTitle}
-                placeholder='Title'
-            />
-            <TextInput
-                style={{ backgroundColor: "#dedede" }}
-                value={sourceUrl}
-                onChangeText={setSourceUrl}
-                placeholder='Source URL'
-            />
-            <View>
-                <View
-                    className='flex-row items-center justify-start mb-4'
-                    style={[
-                        styles.dietaryImagesContainer,
-                        { flexDirection: "row" },
-                    ]}
-                >
-                    {selectedDietaryNeeds &&
-                        selectedDietaryNeeds.map((dietaryOption, index) => (
-                            <View className='mr-2' key={index}>
-                                <Image
-                                    style={styles.tinyLogo}
-                                    source={{
-                                        uri: dietaryImages[dietaryOption],
-                                    }}
-                                />
-                            </View>
-                        ))}
-                </View>
-                <View>
-                    <MultipleSelectList
-                        setSelected={setSelectedDietaryNeeds}
-                        data={() => Object.keys(dietaryImages)}
-                        save='name'
-                        defaultOption={selectedDietaryNeeds}
-                    />
-                </View>
-            </View>
-            <View>
-                <Text
-                    style={{
-                        marginTop: 10,
-                        fontSize: 22,
-                    }}
-                >
-                    Cooking time:
-                </Text>
+        <ScrollView>
+            <View style={styles.container}>
                 <TextInput
                     style={{ backgroundColor: "#dedede" }}
-                    value={cookTime}
-                    onChangeText={setCookTime}
-                    placeholder='Cooking Time'
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder='Title'
                 />
-            </View>
-            <View>
-                <Text
-                    style={{
-                        marginTop: 10,
-                        fontSize: 22,
-                    }}
-                >
-                    Ingredient List:
-                </Text>
                 <TextInput
-                    style={{
-                        backgroundColor: "#dedede",
-                        height: 140,
-                        fontSize: 13,
-                    }}
-                    multiline={true}
-                    value={ingredients}
-                    onChangeText={setIngredients}
-                    placeholder='Ingredients'
+                    style={{ backgroundColor: "#dedede" }}
+                    value={sourceUrl}
+                    onChangeText={setSourceUrl}
+                    placeholder='Source URL'
+                />
+                <View>
+                    <View
+                        className='flex-row items-center justify-start mb-4'
+                        style={[
+                            styles.dietaryImagesContainer,
+                            { flexDirection: "row" },
+                        ]}
+                    >
+                        {selectedDietaryNeeds &&
+                            selectedDietaryNeeds.map((dietaryOption, index) => (
+                                <View className='mr-2' key={index}>
+                                    <Image
+                                        style={styles.tinyLogo}
+                                        source={{
+                                            uri: reselectedDietaryImages[dietaryOption],
+                                        }}
+                                    />
+                                </View>
+                            ))}
+                    </View>
+                    <View>
+                        <MultipleSelectList
+                            setSelected={setReselectedDietaryImages}
+                            data={() => Object.keys(dietaryImages)}
+                            save='name'
+                            defaultOption={selectedDietaryNeeds}
+                        />
+                    </View>
+                </View>
+                <View>
+                    <Text
+                        style={{
+                            marginTop: 10,
+                            fontSize: 22,
+                        }}
+                    >
+                        Cooking time:
+                    </Text>
+                    <TextInput
+                        style={{ backgroundColor: "#dedede" }}
+                        value={cookTime}
+                        onChangeText={setCookTime}
+                        placeholder='Cooking Time'
+                    />
+                </View>
+                <View>
+                    <Text
+                        style={{
+                            marginTop: 10,
+                            fontSize: 22,
+                        }}
+                    >
+                        Ingredient List:
+                    </Text>
+                    <TextInput
+                        style={{
+                            backgroundColor: "#dedede",
+                            height: 140,
+                            fontSize: 13,
+                        }}
+                        multiline={true}
+                        value={ingredients}
+                        onChangeText={setIngredients}
+                        placeholder='Ingredients'
+                    />
+                </View>
+                <View>
+                    <Text
+                        style={{
+                            marginTop: 10,
+                            fontSize: 22,
+                        }}
+                    >
+                        Cooking instructions
+                    </Text>
+                    <TextInput
+                        style={{
+                            backgroundColor: "#dedede",
+                            height: 140,
+                            fontSize: 13,
+                        }}
+                        multiline={true}
+                        value={cookingMethod}
+                        onChangeText={setCookingMethod}
+                        placeholder='Cooking Method'
+                    />
+                </View>
+                <Button title='Save Recipe' onPress={handleSubmit} />
+                <Button
+                    title='Delete Recipe'
+                    onPress={handleDelete}
+                    color='red'
                 />
             </View>
-            <View>
-                <Text
-                    style={{
-                        marginTop: 10,
-                        fontSize: 22,
-                    }}
-                >
-                    Cooking instructions
-                </Text>
-                <TextInput
-                    style={{
-                        backgroundColor: "#dedede",
-                        height: 140,
-                        fontSize: 13,
-                    }}
-                    multiline={true}
-                    value={cookingMethod}
-                    onChangeText={setCookingMethod}
-                    placeholder='Cooking Method'
-                />
-            </View>
-            <Button title='Save Recipe' onPress={handleSubmit} />
-            <Button title='Delete Recipe' onPress={handleDelete} color='red' />
-        </View>
+        </ScrollView>
     );
 }
 

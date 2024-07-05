@@ -59,7 +59,7 @@ function editRecipeCard({}) {
             dietary_needs: selectedDietaryNeeds,
         };
 
-        console.log(reselectedDietaryImages)
+        console.log(reselectedDietaryImages);
         firestore()
             .collection("Recipes")
             .doc(params.recipeId)
@@ -129,6 +129,10 @@ function editRecipeCard({}) {
             { cancelable: true }
         );
     };
+
+
+
+    
     return (
         <ScrollView>
             <View style={styles.container}>
@@ -158,7 +162,9 @@ function editRecipeCard({}) {
                                     <Image
                                         style={styles.tinyLogo}
                                         source={{
-                                            uri: reselectedDietaryImages[dietaryOption],
+                                            uri: reselectedDietaryImages[
+                                                dietaryOption
+                                            ],
                                         }}
                                     />
                                 </View>

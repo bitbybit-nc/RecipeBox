@@ -18,42 +18,43 @@ import { MultipleSelectList } from "react-native-dropdown-select-list";
 export default function RecipeCard() {
     const params = useLocalSearchParams();
     const router = useRouter();
-    const [currentRecipe, setCurrentRecipe] = useState([]);
-    const [dietaryImages, setDietaryImages] = useState([]);
-    const [selectedDietaryNeeds, setSelectedDietaryNeeds] = useState([]);
+    const [currentRecipe, setCurrentRecipe] = useState({});
+    const [dietaryImages, setDietaryImages] = useState({});
+    const [dietaryImagesText, setDietaryImagesText] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [collectionList, setCollectionList] = useState([]);
-    const [selectedCollectionName, setSelectedCollectionName] = useState("");
+    const [filteredCollections, setFilteredCollections] = useState([]);
+    const [currentCollection, setCurrentCollection] = useState({});
 
-    // const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
+    const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
 
     useEffect(() => {
-        if (params.id) {
+        if (TESTPARAMS) {
             firestore()
                 .collection("Dietary_needs")
                 .get()
                 .then((dietaryCategory) => {
                     const images = {};
+                    const text = {};
 
                     dietaryCategory.forEach((doc) => {
                         images[doc._data.slug] = doc._data.image_url;
+                        text[doc._data.slug] = doc._data.display_name;
                     });
                     setDietaryImages(images);
+                    setDietaryImagesText(text);
                 })
                 .catch((err) => err);
 
             firestore()
                 .collection("Recipes")
-                .doc(params.recipeId) //dont delete using for testing
-                // .doc("xgGW8R2SGvG2FyxnQ6Go") //dont delete used for testing
+                // .doc(params.recipeId) //dont delete using for testing
+                .doc("xgGW8R2SGvG2FyxnQ6Go") //dont delete used for testing
                 .get()
                 .then((doc) => {
                     if (doc.exists) {
                         const recipeData = doc._data;
                         setCurrentRecipe(recipeData);
-                        setSelectedDietaryNeeds(recipeData.dietary_needs || []);
-                    } else {
-                        console.log("no recipe");
                     }
                 })
                 .catch((err) => err);
@@ -63,14 +64,31 @@ export default function RecipeCard() {
                 .get()
                 .then((collection) => {
                     const names = [];
+                    let currentCollection = null;
+
                     collection.forEach((doc) => {
                         names.push(doc._data.name);
+                        for (let recipe in doc._data.recipes_list) {
+                            if (doc._data.recipes_list[recipe] === TESTPARAMS) {
+                                currentCollection = {
+                                    image_url: doc._data.image_url,
+                                    name: doc._data.name,
+                                };
+                                setCurrentCollection(currentCollection);
+                            }
+                        }
                     });
-                    setCollectionList(names);
+                    const filteredNames = currentCollection
+                        ? names.filter(
+                              (name) => name !== currentCollection.name
+                          )
+                        : names;
+
+                    setCollectionList(filteredNames);
                 })
                 .catch((err) => err);
         }
-    }, [params.recipeId]);
+    }, [TESTPARAMS, modalVisible]);
 
     const handleEdit = () => {
         if (currentRecipe) {
@@ -78,15 +96,13 @@ export default function RecipeCard() {
                 pathname: "/edit-recipe-card",
                 params: {
                     ...currentRecipe,
-                    recipeId: params.recipeId,
+                    recipeId: TESTPARAMS,
                 },
             });
         }
     };
 
     const handleAddToCollection = (collectionName) => {
-        setSelectedCollectionName(collectionName);
-
         firestore()
             .collection("Collections")
             .where("name", "==", collectionName)
@@ -95,7 +111,7 @@ export default function RecipeCard() {
                 if (!querySnapshot.empty) {
                     const collectionDoc = querySnapshot.docs[0];
                     const collectionId = collectionDoc.id;
-                    const currentRecipeId = params.recipeId;
+                    const currentRecipeId = TESTPARAMS;
 
                     firestore()
                         .collection("Collections")
@@ -140,6 +156,10 @@ export default function RecipeCard() {
                                 })
                                 .then(() => {
                                     console.log("Recipe added to collection");
+                                    const newCollection = collectionList.filter(
+                                        (name) => name !== collectionName
+                                    );
+                                    setFilteredCollections(newCollection);
                                     setModalVisible(false);
                                 })
                                 .catch((err) => err);
@@ -150,21 +170,13 @@ export default function RecipeCard() {
             })
             .catch((err) => err);
     };
+    const displayedCollections = filteredCollections.length
+        ? filteredCollections
+        : collectionList;
 
-    const filteredCollections = collectionList.filter(
-        (collectionName) =>
-            !currentRecipe.recipes_list ||
-            !currentRecipe.recipes_list.includes(params.recipeId)
-    );
     return (
-        <View
-            style={styles.mainContainer}
-            className='flex-1 items-center justify-center bg-white '
-        >
-            <View style={styles.headerContainer}>
-                <Text className='text-xl font-medium text-black mb-4'>
-                    {currentRecipe.title}
-                </Text>
+        <View className='flex-1 items-center justify-center bg-white '>
+            <View className='w-full flex-row justify-end p-4'>
                 <Button
                     title='Edit'
                     onPress={handleEdit}
@@ -177,7 +189,11 @@ export default function RecipeCard() {
                     uri: currentRecipe.recipe_img_url,
                 }}
             />
-            <Text className='text-black mb-4'>{`URL: ${currentRecipe.source_url}`}</Text>
+            <View>
+                <Text className='w-full flex-row justify-between items-center p-4'>
+                    {currentRecipe.title}
+                </Text>
+            </View>
 
             <View
                 className='flex-row items-center justify-start mb-4'
@@ -189,140 +205,137 @@ export default function RecipeCard() {
                 {currentRecipe.dietary_needs &&
                     currentRecipe.dietary_needs.map((dietaryOption, index) => {
                         return (
-                            <View className='mr-2' key={index}>
-                                <Image
-                                    style={styles.tinyLogo}
-                                    source={{
-                                        uri: dietaryImages[dietaryOption],
-                                    }}
-                                />
+                            <View>
+                                <View className='mr-2' key={index}>
+                                    <Image
+                                        style={styles.tinyLogo}
+                                        source={{
+                                            uri: dietaryImages[dietaryOption],
+                                        }}
+                                    />
+                                </View>
+                                <View>
+                                    <Text>
+                                        {dietaryImagesText[dietaryOption]}
+                                    </Text>
+                                </View>
                             </View>
                         );
                     })}
-
-
+            </View>
+            <View>
+                <View className='w-full flex-row justify-between items-center px-4 mb-4'>
+                    <View className='flex-row items-center'>
+                        <Text className='text-xl font-medium text-black'>
+                            Cooking time:
+                        </Text>
+                        <Text className='text-m font-medium text-black ml-2'>
+                            {currentRecipe.cook_time}
+                        </Text>
+                    </View>
+                </View>
             </View>
 
-            <View style={styles.cookingTimeContainer}>
-                <Text className='text-xl font-medium text-black'>
-                    Cooking time:
-                </Text>
-                <Text className='text-m font-medium text-black'>
-                    {currentRecipe.cook_time}
-                </Text>
+            <View className='flex-row items-center'>
+                <Image
+                    style={styles.profilePic}
+                    source={{
+                        uri: "https://via.placeholder.com/150",
+                    }}
+                />
+                <Text className='ml-2 text-black'>John</Text>
             </View>
-
-            <View style={styles.centeredView}>
-                <View>
-                    <Text
-                        style={{
-                            marginTop: 10,
-                            fontSize: 15,
-                        }}
-                    >
-                        Created by user John
-                    </Text>
-                    <Text
-                        style={{
-                            marginTop: 10,
-                            fontSize: 15,
-                        }}
-                    >
-                        {selectedCollectionName}
-                    </Text>
-                    <Modal
-                        animationType='slide'
-                        transparent={true}
-                        visible={modalVisible}
-                        onRequestClose={() => {
-                            Alert.alert("Modal has been closed.");
-                            setModalVisible(!modalVisible);
-                        }}
-                    >
-                        <View>
-                            <Text style={styles.textStyle}>
-                                Add to collections
-                            </Text>
-                        </View>
-                        <View style={styles.centeredView}>
-                            <View style={styles.modalView}>
-                                            <Text className='text-xl  font-medium text-black'>
-                                                Add to collections
-                                            </Text>
-                                {filteredCollections.map(
-                                    (collectionName, index) => (
-                                        <View>
-
-                                            <Pressable
-                                                key={index}
-                                                className='mt-1 p-1 bg-gray-400 w-full rounded-md'
-                                                onPress={() =>
-                                                    handleAddToCollection(
-                                                        collectionName
-                                                    )
-                                                }
-                                            >
-                                                <Text className='mt-1 p-1 bg-gray-400 w-full rounded-md'>
-                                                    {collectionName}
-                                                </Text>
-                                            </Pressable>
-                                        </View>
-                                    )
-                                )}
-                                <Pressable
-                                    className='mt-5 p-3 bg-orange-400 w-full rounded-md'
-                                    onPress={() =>
-                                        setModalVisible(!modalVisible)
-                                    }
-                                >
-                                    <Text className='text-white text-center text-sm font-medium leading-6'>
-                                        Hide Modal
-                                    </Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </Modal>
+            {/* <Text  className="text-xl font-medium text-black">{`URL: ${currentRecipe.source_url}`}</Text> */}
+            <View className='w-full items-end px-4 mb-4'>
+                {!currentCollection.name ? (
                     <Pressable
-                        style={[styles.button, styles.buttonOpen]}
+                        className='p-2 bg-green-200 rounded-md'
                         onPress={() => setModalVisible(true)}
                     >
-                        <Text style={styles.textStyle}>Add to collections</Text>
+                        <View className='flex-row items-center'>
+                            <Text className='text-m bg-white font-medium text-black ml-2'>
+                                Add to collection
+                            </Text>
+                        </View>
                     </Pressable>
-                </View>
-
-                <View style={styles.ingredientsContainer}>
-                    <Text className='text-xl font-medium text-black'>
-                        Ingredients:
-                    </Text>
-                    <Text className='text-s font-medium text-black'>
-                        {currentRecipe.ingredients}
-                    </Text>
-                </View>
-                <View style={styles.cookingMethodContainer}>
-                    <Text className='text-xl font-medium text-black'>
-                        Cooking method:
-                    </Text>
-                    <Text className='text-s font-medium text-black'>
-                        {currentRecipe.cooking_method}
-                    </Text>
-                </View>
+                ) : (
+                    <Pressable
+                        className='p-2 bg-green-200 rounded-md'
+                        onPress={() => setModalVisible(true)}
+                    >
+                        <View className='flex-row items-center'>
+                            <Image
+                                style={styles.profilePic}
+                                source={{
+                                    uri: currentCollection.image_url,
+                                }}
+                            />
+                            <Text className='text-m bg-white font-medium text-black ml-2'>
+                                {currentCollection.name}
+                            </Text>
+                        </View>
+                    </Pressable>
+                )}
             </View>
+
+            <View className='w-full px-4 mb-4'>
+                <Text className='text-xl font-medium text-black'>
+                    Ingredients:
+                </Text>
+                <Text className='text-s font-medium text-black'>
+                    {currentRecipe.ingredients}
+                </Text>
+            </View>
+            <View className='w-full px-4 mb-4'>
+                <Text className='text-xl font-medium text-black'>
+                    Cooking method:
+                </Text>
+                <Text className='text-s font-medium text-black'>
+                    {currentRecipe.cooking_method}
+                </Text>
+            </View>
+
+            <Modal
+                animationType='slide'
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    Alert.alert("Modal has been closed.");
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View className='flex-1 justify-center items-center'>
+                    <View className='bg-white p-8 rounded-md shadow-md'>
+                        <Text className='text-xl font-medium text-black mb-4'>
+                            Add to collections
+                        </Text>
+                        {displayedCollections.map((collection, index) => (
+                            <Pressable
+                                key={index}
+                                className='mt-1 p-2 bg-gray-400 w-full rounded-md'
+                                onPress={() =>
+                                    handleAddToCollection(collection)
+                                }
+                            >
+                                <Text className='text-black'>{collection}</Text>
+                            </Pressable>
+                        ))}
+                        <Pressable
+                            className='mt-5 p-3 bg-orange-400 w-full rounded-md'
+                            onPress={() => setModalVisible(!modalVisible)}
+                        >
+                            <Text className='text-white text-center text-sm font-medium leading-6'>
+                                Hide Modal
+                            </Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    mainContainer: {
-        marginTop: 60,
-        alignItems: "center",
-        justifyContent: "flex-start",
-    },
-
-    dietaryImagesContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "flex-start",
-    },
     midLogo: {
         width: 300,
         height: 100,
@@ -331,79 +344,9 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
     },
-
-    editButton: {
-        marginLeft: 10,
-    },
-    headerContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "70%",
-        paddingTop: 10,
-        marginBottom: 10,
-    },
-    cookingTimeContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "70%",
-        marginBottom: 10,
-    },
-    ingredientsContainer: {
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "70%",
-        marginBottom: 20,
-    },
-    cookingMethodContainer: {
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "70%",
-        marginBottom: 10,
-    },
-
-    centeredView: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 22,
-    },
-
-    modalView: {
-        margin: 20,
-        backgroundColor: "white",
-        borderRadius: 20,
-        padding: 40,
-        paddingTop: 80,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    button: {
-        borderRadius: 20,
-        padding: 10,
-        elevation: 2,
-    },
-    buttonOpen: {
-        backgroundColor: "#F194FF",
-    },
-    buttonClose: {
-        backgroundColor: "#2196F3",
-    },
-    textStyle: {
-        color: "white",
-        fontWeight: "bold",
-        textAlign: "center",
-    },
-    modalText: {
-        marginBottom: 15,
-        textAlign: "center",
+    profilePic: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
     },
 });

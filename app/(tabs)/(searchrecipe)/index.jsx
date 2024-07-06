@@ -13,8 +13,10 @@ import { useEffect, useState } from "react";
 import firestore, { Filter } from "@react-native-firebase/firestore";
 import { RecipeSmallCard } from "../../../components/RecipeSmallCard";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { firebase } from "@react-native-firebase/auth";
 
 export default function SearchRecipesPage() {
+  const user = firebase.auth().currentUser;
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [updateSearch, setUpdateSearch] = useState("");
@@ -61,14 +63,17 @@ export default function SearchRecipesPage() {
         .then((QuerySnapshot) => {
           const recipeList = [];
           QuerySnapshot.forEach((documentSnapshot) => {
-            recipeList.push(documentSnapshot.data());
+            recipeList.push({
+              data: documentSnapshot.data(),
+              id: documentSnapshot.id,
+            });
           });
           if (matchAndDietaries === "true") {
             const isSubset = (array1, array2) =>
               array2.every((element) => array1.includes(element));
 
             const filtered = recipeList.filter((item) =>
-              isSubset(item.dietary_needs, chosenIds)
+              isSubset(item.data.dietary_needs, chosenIds)
             );
 
             setRecipes(filtered);
@@ -84,7 +89,10 @@ export default function SearchRecipesPage() {
       finalQuery = finalQuery.get().then((QuerySnapshot) => {
         const recipeList = [];
         QuerySnapshot.forEach((documentSnapshot) => {
-          recipeList.push(documentSnapshot.data());
+          recipeList.push({
+            data: documentSnapshot.data(),
+            id: documentSnapshot.id,
+          });
         });
         setRecipes(recipeList);
         setIsLoading(false);
@@ -159,7 +167,11 @@ export default function SearchRecipesPage() {
             <FlatList
               data={updateSearch === "" ? recipes : filteredRecipes}
               renderItem={(recipe, index) => (
-                <RecipeSmallCard key={recipe.index} recipe={recipe} />
+                <RecipeSmallCard
+                  key={recipe.index}
+                  recipe={recipe}
+                  user={user.uid}
+                />
               )}
               numColumns={2}
               showsVerticalScrollIndicator={false}

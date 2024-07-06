@@ -16,7 +16,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(collections)"
         options={{
           title: "Collections",
           tabBarIcon: ({ color, focused }) => (
@@ -25,6 +25,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -37,6 +38,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen

@@ -17,16 +17,13 @@ import { MultipleSelectList } from "react-native-dropdown-select-list";
 
 export default function RecipeCard() {
     const params = useLocalSearchParams();
+    // const params = { recipeId: "xgGW8R2SGvG2FyxnQ6G" };
     const router = useRouter();
     const [currentRecipe, setCurrentRecipe] = useState({});
     const [dietaryImages, setDietaryImages] = useState({});
     const [dietaryImagesText, setDietaryImagesText] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
-    const [collectionList, setCollectionList] = useState([]);
-    const [filteredCollections, setFilteredCollections] = useState([]);
-    const [currentCollection, setCurrentCollection] = useState({});
-
-    // const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
+    const [currentCollection, setCurrentCollection] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,28 +55,22 @@ export default function RecipeCard() {
                         .collection("Collections")
                         .get();
                     const names = [];
-                    let currentCollection = null;
+                    let nameToRemove = "";
 
                     collections.forEach((doc) => {
                         names.push(doc._data.name);
+
                         for (let recipe of doc._data.recipes_list) {
                             if (recipe === params.recipeId) {
-                                currentCollection = {
-                                    image_url: doc._data.image_url,
-                                    name: doc._data.name,
-                                };
-                                setCurrentCollection(currentCollection);
+                                nameToRemove = doc._data.name;
                             }
                         }
                     });
 
-                    const filteredNames = currentCollection
-                        ? names.filter(
-                              (name) => name !== currentCollection.name
-                          )
-                        : names;
-
-                    setCollectionList(filteredNames);
+                    const validCollection = names.filter(
+                        (name) => name !== nameToRemove
+                    );
+                    setCurrentCollection(validCollection);
                 } catch (err) {
                     console.error(err);
                 }
@@ -140,10 +131,6 @@ export default function RecipeCard() {
                     .update({ recipes_list: updatedRecipeIds });
 
                 console.log("Recipe added to collection");
-                const newCollection = collectionList.filter(
-                    (name) => name !== collectionName
-                );
-                setFilteredCollections(newCollection);
                 setModalVisible(false);
             } else {
                 console.log("no collection found");
@@ -152,10 +139,6 @@ export default function RecipeCard() {
             console.error(err);
         }
     };
-
-    const displayedCollections = filteredCollections.length
-        ? filteredCollections
-        : collectionList;
 
     return (
         <View className='flex-1 items-center justify-center bg-white '>
@@ -281,7 +264,7 @@ export default function RecipeCard() {
                         <Text className='text-xl font-medium text-black mb-4'>
                             Add to collections
                         </Text>
-                        {displayedCollections.map((collection, index) => (
+                        {currentCollection.map((collection, index) => (
                             <Pressable
                                 key={index}
                                 className='mt-1 p-2 bg-gray-400 w-full rounded-md'

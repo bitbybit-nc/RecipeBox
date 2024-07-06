@@ -29,65 +29,55 @@ export default function RecipeCard() {
     // const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
 
     useEffect(() => {
-        if (params.recipeId) {
-            firestore()
-                .collection("Dietary_needs")
-                .get()
-                .then((dietaryCategory) => {
+        const fetchData = async () => {
+            if (params.recipeId) {
+                try {
+                    const dietaryCategory = await firestore().collection("Dietary_needs").get();
                     const images = {};
                     const text = {};
 
                     dietaryCategory.forEach((doc) => {
-                        images[doc._data.slug] = doc._data.image_url;
-                        text[doc._data.slug] = doc._data.display_name;
+                        images[doc.data().slug] = doc.data().image_url;
+                        text[doc.data().slug] = doc.data().display_name;
                     });
+
                     setDietaryImages(images);
                     setDietaryImagesText(text);
-                })
-                .catch((err) => err);
 
-            firestore()
-                .collection("Recipes")
-                .doc(params.recipeId) //dont delete using for testing
-                // .doc("xgGW8R2SGvG2FyxnQ6Go") //dont delete used for testing
-                .get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const recipeData = doc._data;
-                        setCurrentRecipe(recipeData);
+                    const recipeDoc = await firestore().collection("Recipes").doc(params.recipeId).get();
+                    if (recipeDoc.exists) {
+                        setCurrentRecipe(recipeDoc.data());
                     }
-                })
-                .catch((err) => err);
 
-            firestore()
-                .collection("Collections")
-                .get()
-                .then((collection) => {
+                    const collections = await firestore().collection("Collections").get();
                     const names = [];
                     let currentCollection = null;
 
-                    collection.forEach((doc) => {
-                        names.push(doc._data.name);
-                        for (let recipe in doc._data.recipes_list) {
-                            if (doc._data.recipes_list[recipe] === params.recipeId) {
+                    collections.forEach((doc) => {
+                        names.push(doc.data().name);
+                        for (let recipe of doc.data().recipes_list) {
+                            if (recipe === params.recipeId) {
                                 currentCollection = {
-                                    image_url: doc._data.image_url,
-                                    name: doc._data.name,
+                                    image_url: doc.data().image_url,
+                                    name: doc.data().name,
                                 };
                                 setCurrentCollection(currentCollection);
                             }
                         }
                     });
+
                     const filteredNames = currentCollection
-                        ? names.filter(
-                              (name) => name !== currentCollection.name
-                          )
+                        ? names.filter(name => name !== currentCollection.name)
                         : names;
 
                     setCollectionList(filteredNames);
-                })
-                .catch((err) => err);
-        }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        };
+
+        fetchData();
     }, [params.recipeId, modalVisible]);
 
     const handleEdit = () => {
@@ -102,77 +92,40 @@ export default function RecipeCard() {
         }
     };
 
-    const handleAddToCollection = (collectionName) => {
-        firestore()
-            .collection("Collections")
-            .where("name", "==", collectionName)
-            .get()
-            .then((querySnapshot) => {
-                if (!querySnapshot.empty) {
-                    const collectionDoc = querySnapshot.docs[0];
-                    const collectionId = collectionDoc.id;
-                    const currentRecipeId = params.recipeId;
+    const handleAddToCollection = async (collectionName) => {
+        try {
+            const querySnapshot = await firestore().collection("Collections").where("name", "==", collectionName).get();
+            if (!querySnapshot.empty) {
+                const collectionDoc = querySnapshot.docs[0];
+                const collectionId = collectionDoc.id;
+                const currentRecipeId = params.recipeId;
 
-                    firestore()
-                        .collection("Collections")
-                        .where(
-                            "recipes_list",
-                            "array-contains",
-                            currentRecipeId
-                        )
-                        .get()
-                        .then((snapshot) => {
-                            snapshot.forEach((doc) => {
-                                const docId = doc.id;
-                                const updatedRecipeIds =
-                                    doc._data.recipes_list.filter(
-                                        (id) => id !== currentRecipeId
-                                    );
+                const snapshot = await firestore().collection("Collections").where("recipes_list", "array-contains", currentRecipeId).get();
+                for (let doc of snapshot.docs) {
+                    const docId = doc.id;
+                    const updatedRecipeIds = doc.data().recipes_list.filter(id => id !== currentRecipeId);
 
-                                firestore()
-                                    .collection("Collections")
-                                    .doc(docId)
-                                    .update({
-                                        recipes_list: updatedRecipeIds,
-                                    })
-                                    .then(() => {
-                                        console.log(
-                                            `Removed recipe from collection: ${docId}`
-                                        );
-                                        setModalVisible(false);
-                                    })
-                                    .catch((err) => err);
-                            });
-                            const updatedRecipeIds = [
-                                ...collectionDoc._data.recipes_list,
-                                currentRecipeId,
-                            ];
-
-                            firestore()
-                                .collection("Collections")
-                                .doc(collectionId)
-                                .update({
-                                    recipes_list: updatedRecipeIds,
-                                })
-                                .then(() => {
-                                    console.log("Recipe added to collection");
-                                    const newCollection = collectionList.filter(
-                                        (name) => name !== collectionName
-                                    );
-                                    setFilteredCollections(newCollection);
-                                    setModalVisible(false);
-                                })
-                                .catch((err) => err);
-                        });
-                } else {
-                    console.log("no collection found");
+                    await firestore().collection("Collections").doc(docId).update({ recipes_list: updatedRecipeIds });
+                    console.log(`Removed recipe from collection: ${docId}`);
+                    setModalVisible(false);
                 }
-            })
-            .catch((err) => err);
+
+                const updatedRecipeIds = [...collectionDoc.data().recipes_list, currentRecipeId];
+                await firestore().collection("Collections").doc(collectionId).update({ recipes_list: updatedRecipeIds });
+
+                console.log("Recipe added to collection");
+                const newCollection = collectionList.filter(name => name !== collectionName);
+                setFilteredCollections(newCollection);
+                setModalVisible(false);
+            } else {
+                console.log("no collection found");
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
-    const displayedCollections = filteredCollections.length
-        ? filteredCollections
-        : collectionList;
+
+    const displayedCollections = filteredCollections.length ? filteredCollections : collectionList;
 
     return (
         <View className='flex-1 items-center justify-center bg-white '>
@@ -185,9 +138,7 @@ export default function RecipeCard() {
             </View>
             <Image
                 style={styles.midLogo}
-                source={{
-                    uri: currentRecipe.recipe_img_url,
-                }}
+                source={{ uri: currentRecipe.recipe_img_url }}
             />
             <View>
                 <Text className='w-full flex-row justify-between items-center p-4'>
@@ -195,53 +146,37 @@ export default function RecipeCard() {
                 </Text>
             </View>
 
-            <View
-                className='flex-row items-center justify-start mb-4'
-                style={[
-                    styles.dietaryImagesContainer,
-                    { flexDirection: "row" },
-                ]}
-            >
-                {currentRecipe.dietary_needs &&
-                    currentRecipe.dietary_needs.map((dietaryOption, index) => {
-                        return (
-                            <View>
-                                <View className='mr-2' key={index}>
-                                    <Image
-                                        style={styles.tinyLogo}
-                                        source={{
-                                            uri: dietaryImages[dietaryOption],
-                                        }}
-                                    />
-                                </View>
-                                <View>
-                                    <Text>
-                                        {dietaryImagesText[dietaryOption]}
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    })}
-            </View>
-            <View>
-                <View className='w-full flex-row justify-between items-center px-4 mb-4'>
-                    <View className='flex-row items-center'>
-                        <Text className='text-xl font-medium text-black'>
-                            Cooking time:
-                        </Text>
-                        <Text className='text-m font-medium text-black ml-2'>
-                            {currentRecipe.cook_time}
-                        </Text>
+            <View className='flex-row items-center justify-start mb-4' style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}>
+                {currentRecipe.dietary_needs && currentRecipe.dietary_needs.map((dietaryOption, index) => (
+                    <View key={index}>
+                        <View className='mr-2'>
+                            <Image
+                                style={styles.tinyLogo}
+                                source={{ uri: dietaryImages[dietaryOption] }}
+                            />
+                        </View>
+                        <View>
+                            <Text>{dietaryImagesText[dietaryOption]}</Text>
+                        </View>
                     </View>
+                ))}
+            </View>
+
+            <View className='w-full flex-row justify-between items-center px-4 mb-4'>
+                <View className='flex-row items-center'>
+                    <Text className='text-xl font-medium text-black'>
+                        Cooking time:
+                    </Text>
+                    <Text className='text-m font-medium text-black ml-2'>
+                        {currentRecipe.cook_time}
+                    </Text>
                 </View>
             </View>
 
             <View className='flex-row items-center'>
                 <Image
                     style={styles.profilePic}
-                    source={{
-                        uri: "https://via.placeholder.com/150",
-                    }}
+                    source={{ uri: "https://via.placeholder.com/150" }}
                 />
                 <Text className='ml-2 text-black'>John</Text>
             </View>
@@ -266,9 +201,7 @@ export default function RecipeCard() {
                         <View className='flex-row items-center'>
                             <Image
                                 style={styles.profilePic}
-                                source={{
-                                    uri: currentCollection.image_url,
-                                }}
+                                source={{ uri: currentCollection.image_url }}
                             />
                             <Text className='text-m bg-white font-medium text-black ml-2'>
                                 {currentCollection.name}
@@ -313,9 +246,7 @@ export default function RecipeCard() {
                             <Pressable
                                 key={index}
                                 className='mt-1 p-2 bg-gray-400 w-full rounded-md'
-                                onPress={() =>
-                                    handleAddToCollection(collection)
-                                }
+                                onPress={() => handleAddToCollection(collection)}
                             >
                                 <Text className='text-black'>{collection}</Text>
                             </Pressable>

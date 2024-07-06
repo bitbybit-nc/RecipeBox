@@ -1,4 +1,10 @@
-import { useLocalSearchParams, useRoute } from "expo-router";
+import {
+  Link,
+  useLocalSearchParams,
+  useRouter,
+  Stack,
+  router,
+} from "expo-router";
 import {
   StyleSheet,
   View,
@@ -8,135 +14,235 @@ import {
   FlatList,
   Image,
   item,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
+import auth from "@react-native-firebase/auth";
+import { FA6Style } from "@expo/vector-icons/build/FontAwesome6";
+import * as ImagePicker from "expo-image-picker";
+import { firebase } from "@react-native-firebase/auth";
+import storage from "@react-native-firebase/storage";
 
 export default function RecipePreview() {
+  const user = firebase.auth().currentUser;
+
   const params = useLocalSearchParams();
   const [dietaryOptions, setDietaryOptions] = useState([]);
   const [selected, setSelected] = useState([]);
+  const [image, setImage] = useState(null);
+  // const [recipeId, setRecipeId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [newRecipe, setNewRecipe] = useState({
+    category: [],
+    cook_time: "",
+    cooking_method: "",
+    dietary_needs: [],
+    ingredients: "",
+    is_public: true,
+    rating: 0,
+    recipe_img_url: "",
+    saved_count: 0,
+    source_url: params.url,
+    title: "",
+    uid: user._user.uid,
+  });
 
   useEffect(() => {
-    firestore()
-      .collection("Dietary-needs")
-      .get()
-      .then((result) => {
-        const options = result.docs.map((doc) => ({
-          name: doc._data.name,
-          imgUrl: doc._data["image-url"],
-        }));
-        setDietaryOptions(options);
-      });
+    const fetchDietaryOptions = async () => {
+      const result = await firestore().collection("Dietary_needs").get();
+      const options = result.docs.map((doc) => ({
+        name: doc._data.slug,
+        imgUrl: doc._data.image_url,
+      }));
+      setDietaryOptions(options);
+    };
+    fetchDietaryOptions();
   }, []);
+
+  useEffect(() => {
+    setNewRecipe((prevRecipe) => ({
+      ...prevRecipe,
+      dietary_needs: selected,
+      recipe_img_url: image,
+    }));
+  }, [selected, image]);
+
+  function handleInput(key, value) {
+    setNewRecipe((recipe) => {
+      return { ...recipe, [key]: value };
+    });
+  }
+
+  async function handleRecipeSubmit() {
+    try {
+      const result = await firestore().collection("Recipes").add(newRecipe);
+      const recipeId = result.id;
+      router.push({ pathname: "/recipe-card", params: { recipeId } });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const reference = await storage().ref(
+        `Users/${user._user.uid}/${new Date().getTime()}.jpg`
+      );
+
+      try {
+        setIsLoading(true);
+        await reference.putFile(imageUri);
+        const imageUrlDownload = await reference.getDownloadURL();
+        setImage(imageUrlDownload);
+        setIsLoading(false);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={{ backgroundColor: "#dedede" }}
-        placeholder="recipe-title"
-      />
-      <Text>URL: {params.url}</Text>
-      <View></View>
-      <Text>Dietary info</Text>
-      <FlatList
-        data={selected}
-        renderItem={({ item }) => {
-          return dietaryOptions.map((option) => {
-            if (option.name === item) {
-              return (
+    <ScrollView>
+      <View className = "m-2">
+        <View>
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#FB923C" />
+          ) : (
+            image && (
+              <View>
+                <Image
+                  source={{ uri: image }}
+                  className="w-4/5 h-44 self-center rounded-md"
+                />
                 <View>
-                  <Image
-                    style={styles.tinyLogo}
-                    source={{
-                      uri: option.imgUrl,
-                    }}
-                  />
+                  <Pressable className = "bg-zinc-300" onPress={pickImage}>
+                    <Text>Replace Btn</Text>
+                  </Pressable>
+                {/* <Button
+                  title="Replace Btn"
+                  onPress={pickImage}
+                /> */}
                 </View>
-              );
-            }
-          });
-        }}
-        keyExtractor={(item) => item.name}
-        horizontal
-        style={styles.selectedList}
-      />
-      <MultipleSelectList
-        setSelected={(val) => setSelected(val)}
-        data={dietaryOptions.map((option) => option.name)}
-        save="name"
-      />
+              </View>
+            )
+          )}
+        </View>
+        <View>
+          {image ? null : (
+            <Button
+              title="Add Recipe Image from Camera Roll"
+              onPress={pickImage}
+            />
+          )}
 
-      <View>
-        <Text
-          style={{
-            marginTop: 10,
-            fontSize: 22,
-          }}
-        >
-          Cooking time:
-        </Text>
+          {/* {image && <Image source={{ uri: image }} style={styles.image} />} */}
+        </View>
+        <Text className="text-xs">Recipe Title</Text>
         <TextInput
-          style={{
-            backgroundColor: "#dedede",
-          }}
-          placeholder="cooking time"
+          className="bg-zinc-200 rounded-md p-1"
+          placeholder="Recipe Title"
+          onChangeText={(text) => handleInput("title", text)}
         />
-      </View>
+        <View>
+          <Text className="text-xs">Original Source</Text>
+          <Text className="bg-zinc-200 rounded-md p-1 text-zinc-500">
+            {params.url}
+          </Text>
+        </View>
+        <Text className="text-xs">Dietary info</Text>
+        <View
+          className="flex-row items-center justify-start mb-4"
+          style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}
+        >
+          {dietaryOptions &&
+            dietaryOptions.map((option, index) => {
+              return selected.map((element) => {
+                if (option.name === element) {
+                  return (
+                    <View>
+                      <Image
+                        style={styles.tinyLogo}
+                        key={index}
+                        source={{ uri: option.imgUrl }}
+                      />
+                    </View>
+                  );
+                }
+              });
+            })}
+        </View>
 
-      <View>
-        <Text
-          style={{
-            marginTop: 10,
-            fontSize: 22,
-          }}
-        >
-          Ingredient List:
-        </Text>
-        <TextInput
-          style={{
-            backgroundColor: "#dedede",
-            height: 140,
-            fontSize: 13,
-          }}
-          multiline={true}
-          placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+        <MultipleSelectList
+          setSelected={(val) => setSelected(val)}
+          data={dietaryOptions.map((option) => option.name)}
+          save="name"
+          search={false}
         />
-      </View>
 
-      <View>
-        <Text
-          style={{
-            marginTop: 10,
-            fontSize: 22,
-          }}
+        <View>
+          <Text className="text-xs">Categories</Text>
+          <TextInput
+            className="bg-zinc-200 rounded-md p-1"
+            placeholder="Categories"
+            onChangeText={(text) => handleInput("category", text)}
+          />
+        </View>
+        <View>
+          <Text className="text-xs">Cooking time</Text>
+          <TextInput
+            className="bg-zinc-200 rounded-md p-1"
+            placeholder="Cooking time"
+            onChangeText={(text) => handleInput("cook_time", text)}
+          />
+        </View>
+        <View>
+          <Text className="text-xs">Ingredient List</Text>
+          <TextInput
+            className="bg-zinc-200 rounded-md p-1"
+            multiline={true}
+            placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            onChangeText={(text) => handleInput("ingredients", text)}
+          />
+        </View>
+        <View>
+          <Text className="text-xs">Cooking instructions</Text>
+          <TextInput
+            className="bg-zinc-200 rounded-md p-1"
+            multiline={true}
+            placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            onChangeText={(text) => handleInput("cooking_method", text)}
+          />
+        </View>
+        <Pressable
+          className="mt-5 p-3 bg-orange-400 w-full rounded-md"
+          onPress={handleRecipeSubmit}
         >
-          Cooking instructions
-        </Text>
-        <TextInput
-          style={{
-            backgroundColor: "#dedede",
-            height: 140,
-            fontSize: 13,
-          }}
-          multiline={true}
-          placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        />
+          <Text className="text-white text-center text-sm font-medium leading-6">
+            Submit Recipe
+          </Text>
+        </Pressable>
       </View>
-      <Button
-        // onPress={handleRecipeSubmit}
-        title="Submit Recipe"
-        accessibilityLabel="recipe-submission-button"
-      />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: "left",
-    margin: 10,
-    paddingTop: 50,
+  dietaryImagesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   tinyLogo: {
     width: 50,

@@ -26,10 +26,10 @@ export default function RecipeCard() {
     const [filteredCollections, setFilteredCollections] = useState([]);
     const [currentCollection, setCurrentCollection] = useState({});
 
-    const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
+    // const TESTPARAMS = "xgGW8R2SGvG2FyxnQ6Go";
 
     useEffect(() => {
-        if (TESTPARAMS) {
+        if (params.recipeId) {
             firestore()
                 .collection("Dietary_needs")
                 .get()
@@ -48,8 +48,8 @@ export default function RecipeCard() {
 
             firestore()
                 .collection("Recipes")
-                // .doc(params.recipeId) //dont delete using for testing
-                .doc("xgGW8R2SGvG2FyxnQ6Go") //dont delete used for testing
+                .doc(params.recipeId) //dont delete using for testing
+                // .doc("xgGW8R2SGvG2FyxnQ6Go") //dont delete used for testing
                 .get()
                 .then((doc) => {
                     if (doc.exists) {
@@ -69,7 +69,7 @@ export default function RecipeCard() {
                     collection.forEach((doc) => {
                         names.push(doc._data.name);
                         for (let recipe in doc._data.recipes_list) {
-                            if (doc._data.recipes_list[recipe] === TESTPARAMS) {
+                            if (doc._data.recipes_list[recipe] === params.recipeId) {
                                 currentCollection = {
                                     image_url: doc._data.image_url,
                                     name: doc._data.name,
@@ -88,7 +88,7 @@ export default function RecipeCard() {
                 })
                 .catch((err) => err);
         }
-    }, [TESTPARAMS, modalVisible]);
+    }, [params.recipeId, modalVisible]);
 
     const handleEdit = () => {
         if (currentRecipe) {
@@ -96,7 +96,7 @@ export default function RecipeCard() {
                 pathname: "/edit-recipe-card",
                 params: {
                     ...currentRecipe,
-                    recipeId: TESTPARAMS,
+                    recipeId: params.recipeId,
                 },
             });
         }
@@ -111,7 +111,7 @@ export default function RecipeCard() {
                 if (!querySnapshot.empty) {
                     const collectionDoc = querySnapshot.docs[0];
                     const collectionId = collectionDoc.id;
-                    const currentRecipeId = TESTPARAMS;
+                    const currentRecipeId = params.recipeId;
 
                     firestore()
                         .collection("Collections")

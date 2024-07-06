@@ -42,9 +42,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="import-recipe"
+        name="(importrecipe)"
         options={{
-          title: "Import",
+          title: "Import Recipe",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "cloud-upload" : "cloud-upload-outline"}

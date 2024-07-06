@@ -32,34 +32,41 @@ export default function RecipeCard() {
         const fetchData = async () => {
             if (params.recipeId) {
                 try {
-                    const dietaryCategory = await firestore().collection("Dietary_needs").get();
+                    const dietaryCategory = await firestore()
+                        .collection("Dietary_needs")
+                        .get();
                     const images = {};
                     const text = {};
 
                     dietaryCategory.forEach((doc) => {
-                        images[doc.data().slug] = doc.data().image_url;
-                        text[doc.data().slug] = doc.data().display_name;
+                        images[doc._data.slug] = doc._data.image_url;
+                        text[doc._data.slug] = doc._data.display_name;
                     });
 
                     setDietaryImages(images);
                     setDietaryImagesText(text);
 
-                    const recipeDoc = await firestore().collection("Recipes").doc(params.recipeId).get();
+                    const recipeDoc = await firestore()
+                        .collection("Recipes")
+                        .doc(params.recipeId)
+                        .get();
                     if (recipeDoc.exists) {
-                        setCurrentRecipe(recipeDoc.data());
+                        setCurrentRecipe(recipeDoc._data);
                     }
 
-                    const collections = await firestore().collection("Collections").get();
+                    const collections = await firestore()
+                        .collection("Collections")
+                        .get();
                     const names = [];
                     let currentCollection = null;
 
                     collections.forEach((doc) => {
-                        names.push(doc.data().name);
-                        for (let recipe of doc.data().recipes_list) {
+                        names.push(doc._data.name);
+                        for (let recipe of doc._data.recipes_list) {
                             if (recipe === params.recipeId) {
                                 currentCollection = {
-                                    image_url: doc.data().image_url,
-                                    name: doc.data().name,
+                                    image_url: doc._data.image_url,
+                                    name: doc._data.name,
                                 };
                                 setCurrentCollection(currentCollection);
                             }
@@ -67,7 +74,9 @@ export default function RecipeCard() {
                     });
 
                     const filteredNames = currentCollection
-                        ? names.filter(name => name !== currentCollection.name)
+                        ? names.filter(
+                              (name) => name !== currentCollection.name
+                          )
                         : names;
 
                     setCollectionList(filteredNames);
@@ -94,27 +103,46 @@ export default function RecipeCard() {
 
     const handleAddToCollection = async (collectionName) => {
         try {
-            const querySnapshot = await firestore().collection("Collections").where("name", "==", collectionName).get();
+            const querySnapshot = await firestore()
+                .collection("Collections")
+                .where("name", "==", collectionName)
+                .get();
             if (!querySnapshot.empty) {
                 const collectionDoc = querySnapshot.docs[0];
                 const collectionId = collectionDoc.id;
                 const currentRecipeId = params.recipeId;
 
-                const snapshot = await firestore().collection("Collections").where("recipes_list", "array-contains", currentRecipeId).get();
+                const snapshot = await firestore()
+                    .collection("Collections")
+                    .where("recipes_list", "array-contains", currentRecipeId)
+                    .get();
                 for (let doc of snapshot.docs) {
                     const docId = doc.id;
-                    const updatedRecipeIds = doc.data().recipes_list.filter(id => id !== currentRecipeId);
+                    const updatedRecipeIds = doc._data.recipes_list.filter(
+                        (id) => id !== currentRecipeId
+                    );
 
-                    await firestore().collection("Collections").doc(docId).update({ recipes_list: updatedRecipeIds });
+                    await firestore()
+                        .collection("Collections")
+                        .doc(docId)
+                        .update({ recipes_list: updatedRecipeIds });
                     console.log(`Removed recipe from collection: ${docId}`);
                     setModalVisible(false);
                 }
 
-                const updatedRecipeIds = [...collectionDoc.data().recipes_list, currentRecipeId];
-                await firestore().collection("Collections").doc(collectionId).update({ recipes_list: updatedRecipeIds });
+                const updatedRecipeIds = [
+                    ...collectionDoc._data.recipes_list,
+                    currentRecipeId,
+                ];
+                await firestore()
+                    .collection("Collections")
+                    .doc(collectionId)
+                    .update({ recipes_list: updatedRecipeIds });
 
                 console.log("Recipe added to collection");
-                const newCollection = collectionList.filter(name => name !== collectionName);
+                const newCollection = collectionList.filter(
+                    (name) => name !== collectionName
+                );
                 setFilteredCollections(newCollection);
                 setModalVisible(false);
             } else {
@@ -125,7 +153,9 @@ export default function RecipeCard() {
         }
     };
 
-    const displayedCollections = filteredCollections.length ? filteredCollections : collectionList;
+    const displayedCollections = filteredCollections.length
+        ? filteredCollections
+        : collectionList;
 
     return (
         <View className='flex-1 items-center justify-center bg-white '>
@@ -146,20 +176,29 @@ export default function RecipeCard() {
                 </Text>
             </View>
 
-            <View className='flex-row items-center justify-start mb-4' style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}>
-                {currentRecipe.dietary_needs && currentRecipe.dietary_needs.map((dietaryOption, index) => (
-                    <View key={index}>
-                        <View className='mr-2'>
-                            <Image
-                                style={styles.tinyLogo}
-                                source={{ uri: dietaryImages[dietaryOption] }}
-                            />
+            <View
+                className='flex-row items-center justify-start mb-4'
+                style={[
+                    styles.dietaryImagesContainer,
+                    { flexDirection: "row" },
+                ]}
+            >
+                {currentRecipe.dietary_needs &&
+                    currentRecipe.dietary_needs.map((dietaryOption, index) => (
+                        <View key={index}>
+                            <View className='mr-2'>
+                                <Image
+                                    style={styles.tinyLogo}
+                                    source={{
+                                        uri: dietaryImages[dietaryOption],
+                                    }}
+                                />
+                            </View>
+                            <View>
+                                <Text>{dietaryImagesText[dietaryOption]}</Text>
+                            </View>
                         </View>
-                        <View>
-                            <Text>{dietaryImagesText[dietaryOption]}</Text>
-                        </View>
-                    </View>
-                ))}
+                    ))}
             </View>
 
             <View className='w-full flex-row justify-between items-center px-4 mb-4'>
@@ -246,7 +285,9 @@ export default function RecipeCard() {
                             <Pressable
                                 key={index}
                                 className='mt-1 p-2 bg-gray-400 w-full rounded-md'
-                                onPress={() => handleAddToCollection(collection)}
+                                onPress={() =>
+                                    handleAddToCollection(collection)
+                                }
                             >
                                 <Text className='text-black'>{collection}</Text>
                             </Pressable>

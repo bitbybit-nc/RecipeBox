@@ -16,7 +16,7 @@ import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 
-function editRecipeCard({}) {
+function EditRecipeCard({}) {
     const params = useLocalSearchParams();
     const router = useRouter();
     const dietaryNeedsArray = params.dietary_needs
@@ -36,20 +36,25 @@ function editRecipeCard({}) {
     );
 
     useEffect(() => {
-        firestore()
-            .collection("Dietary_needs")
-            .get()
-            .then((dietaryCategory) => {
+        const fetchDietaryImages = async () => {
+            try {
+                const dietaryCategory = await firestore()
+                    .collection("Dietary_needs")
+                    .get();
                 const images = {};
                 dietaryCategory.forEach((doc) => {
                     images[doc._data.slug] = doc._data.image_url;
                 });
                 setDietaryImages(images);
-            })
-            .catch((err) => err);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchDietaryImages();
     }, []);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const updatedRecipe = {
             title,
             source_url: sourceUrl,
@@ -59,33 +64,34 @@ function editRecipeCard({}) {
             dietary_needs: selectedDietaryNeeds,
         };
 
-        console.log(reselectedDietaryImages);
-        firestore()
-            .collection("Recipes")
-            .doc(params.recipeId)
-            .update(updatedRecipe)
-            .then(() => {
-                const recipeId = params.recipeId;
-                Alert.alert(
-                    "Success",
-                    "Recipe updated successfully",
-                    [
-                        {
-                            text: "OK",
-                            onPress: () =>
-                                router.push({
-                                    pathname: "/recipe-card",
-                                    params: { recipeId },
-                                }),
-                        },
-                    ],
-                    { cancelable: false }
-                );
-            })
-            .catch((err) => err);
+
+        try {
+            await firestore()
+                .collection("Recipes")
+                .doc(params.recipeId)
+                .update(updatedRecipe);
+
+            Alert.alert(
+                "Success",
+                "Recipe updated successfully",
+                [
+                    {
+                        text: "OK",
+                        onPress: () =>
+                            router.push({
+                                pathname: "/recipe-card",
+                                params: { recipeId: params.recipeId },
+                            }),
+                    },
+                ],
+                { cancelable: false }
+            );
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         Alert.alert(
             "Confirm Delete",
             "Are you sure you want to delete this recipe?",
@@ -96,32 +102,30 @@ function editRecipeCard({}) {
                 },
                 {
                     text: "Delete",
-                    onPress: () => {
-                        firestore()
-                            .collection("Recipes")
-                            .doc(params.recipeId)
-                            .delete()
-                            .then(() => {
-                                Alert.alert(
-                                    "Deleted",
-                                    "Recipe deleted successfully",
-                                    [
-                                        {
-                                            text: "OK",
-                                            onPress: () =>
-                                                router.push({
-                                                    pathname: "/recipe-card",
-                                                    params: {
-                                                        recipeId:
-                                                            "LQM1aJAUX3DAWsTh40Z8",
-                                                    },
-                                                }),
-                                        },
-                                    ],
-                                    { cancelable: false }
-                                );
-                            })
-                            .catch((err) => console.error(err));
+                    onPress: async () => {
+                        try {
+                            await firestore()
+                                .collection("Recipes")
+                                .doc(params.recipeId)
+                                .delete();
+
+                            Alert.alert(
+                                "Deleted",
+                                "Recipe deleted successfully",
+                                [
+                                    {
+                                        text: "OK",
+                                        onPress: () =>
+                                            router.push({
+                                                pathname: "./(searchrecipe)/index",
+                                            }),
+                                    },
+                                ],
+                                { cancelable: false }
+                            );
+                        } catch (err) {
+                            console.error(err);
+                        }
                     },
                     style: "destructive",
                 },
@@ -130,9 +134,6 @@ function editRecipeCard({}) {
         );
     };
 
-
-
-    
     return (
         <ScrollView>
             <View style={styles.container}>
@@ -140,17 +141,17 @@ function editRecipeCard({}) {
                     style={{ backgroundColor: "#dedede" }}
                     value={title}
                     onChangeText={setTitle}
-                    placeholder='Title'
+                    placeholder="Title"
                 />
                 <TextInput
                     style={{ backgroundColor: "#dedede" }}
                     value={sourceUrl}
                     onChangeText={setSourceUrl}
-                    placeholder='Source URL'
+                    placeholder="Source URL"
                 />
                 <View>
                     <View
-                        className='flex-row items-center justify-start mb-4'
+                        className="flex-row items-center justify-start mb-4"
                         style={[
                             styles.dietaryImagesContainer,
                             { flexDirection: "row" },
@@ -158,7 +159,7 @@ function editRecipeCard({}) {
                     >
                         {selectedDietaryNeeds &&
                             selectedDietaryNeeds.map((dietaryOption, index) => (
-                                <View className='mr-2' key={index}>
+                                <View className="mr-2" key={index}>
                                     <Image
                                         style={styles.tinyLogo}
                                         source={{
@@ -174,7 +175,7 @@ function editRecipeCard({}) {
                         <MultipleSelectList
                             setSelected={setReselectedDietaryImages}
                             data={() => Object.keys(dietaryImages)}
-                            save='name'
+                            save="name"
                             defaultOption={selectedDietaryNeeds}
                         />
                     </View>
@@ -192,7 +193,7 @@ function editRecipeCard({}) {
                         style={{ backgroundColor: "#dedede" }}
                         value={cookTime}
                         onChangeText={setCookTime}
-                        placeholder='Cooking Time'
+                        placeholder="Cooking Time"
                     />
                 </View>
                 <View>
@@ -213,7 +214,7 @@ function editRecipeCard({}) {
                         multiline={true}
                         value={ingredients}
                         onChangeText={setIngredients}
-                        placeholder='Ingredients'
+                        placeholder="Ingredients"
                     />
                 </View>
                 <View>
@@ -234,14 +235,14 @@ function editRecipeCard({}) {
                         multiline={true}
                         value={cookingMethod}
                         onChangeText={setCookingMethod}
-                        placeholder='Cooking Method'
+                        placeholder="Cooking Method"
                     />
                 </View>
-                <Button title='Save Recipe' onPress={handleSubmit} />
+                <Button title="Save Recipe" onPress={handleSubmit} />
                 <Button
-                    title='Delete Recipe'
+                    title="Delete Recipe"
                     onPress={handleDelete}
-                    color='red'
+                    color="red"
                 />
             </View>
         </ScrollView>
@@ -268,4 +269,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default editRecipeCard;
+export default EditRecipeCard;

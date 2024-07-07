@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { Link, useLocalSearchParams, useRouter, Stack, useNavigation } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
     View,
@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 
 function EditCollection() {
     const params = useLocalSearchParams();
+    const navigation = useNavigation()
     const user = auth().currentUser;
     const router = useRouter();
     const [collectionName, setCollectionName] = useState("");
@@ -32,10 +33,17 @@ function EditCollection() {
     const [collectionDescription, setCollectionDescription] = useState("");
     const [recipes, setRecipes] = useState([]);
     const [recipesToRemove, setRecipesToRemove] = useState([]);
+    const [updatedCollection, setUpdatedCollection] = useState()
     const errorimageUrl =
         "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
 
     useEffect(() => {
+
+    navigation.setOptions({
+        unmountOnBlur: true,
+        title: "Edit",
+  
+      });
         const fetchData = async () => {
             try {
                 const collectionDoc = await firestore()
@@ -50,20 +58,26 @@ function EditCollection() {
                     setCollectionDescription(data.description);
                     if (data.image_url) setVisible(true);
 
-                    const recipePromises = data.recipes_list.map(
-                        async (recipeId) => {
-                            const recipeDoc = await firestore()
-                                .collection("Recipes")
-                                .doc(recipeId)
-                                .get();
-                            if (recipeDoc.exists) {
-                                return { id: recipeId, ...recipeDoc.data() };
+                    if (data.recipes) {
+                        const recipePromises = data.recipes_list.map(
+                            async (recipeId) => {
+                                const recipeDoc = await firestore()
+                                    .collection("Recipes")
+                                    .doc(recipeId)
+                                    .get();
+                                if (recipeDoc.exists) {
+                                    return { id: recipeId, ...recipeDoc.data() }; 
+                                }
+                                return null;
                             }
-                            return null;
-                        }
-                    );
-                    const recipes = await Promise.all(recipePromises);
-                    setRecipes(recipes.filter((recipe) => recipe !== null));
+                        );
+                        
+                        const recipes = await Promise.all(recipePromises);
+                        setRecipes(recipes.filter((recipe) => recipe !== null));
+                    } else {
+                        setRecipes({not_found: "Not Found"})
+                    }
+
                 }
             } catch (error) {
                 console.error(error);
@@ -74,25 +88,54 @@ function EditCollection() {
 
     const handleEditCollection = async () => {
         try {
-            const updatedRecipesList = recipes
-                .filter((recipe) => !recipesToRemove.includes(recipe.id))
-                .map((recipe) => recipe.id);
+           if (recipes.length > 0) {
+               const updatedRecipesList = recipes
+                   .filter((recipe) => !recipesToRemove.includes(recipe.id))
+                   .map((recipe) => recipe.id);
 
+               await firestore()
+                   .collection("Collections")
+                   .doc(params.id)
+                   .update({
+                       name: collectionName,
+                       image_url: image,
+                       is_public: collectionVisibility,
+                       description: collectionDescription,
+                       recipes_list: updatedRecipesList,
+                   }).then(()=> {
+                    setUpdatedCollection(params.id)
+                    router.navigate({pathname: "/(collections)", params: {collectionName: collectionName, url: url, collectionDescription: collectionDescription, image: image }});
+                })
+   
+               console.log("Collection updated!");
+                
+               
+ 
+           } else {
             await firestore()
-                .collection("Collections")
-                .doc(params.id)
-                .update({
-                    name: collectionName,
-                    image_url: image || url,
-                    is_public: collectionVisibility,
-                    description: collectionDescription,
-                    recipes_list: updatedRecipesList,
-                });
+                   .collection("Collections")
+                   .doc(params.id)
+                   .update({
+                       name: collectionName,
+                       image_url: image,
+                       is_public: collectionVisibility,
+                       description: collectionDescription,
+                       recipes_list: [],
+                   }).then(()=> {
+                    setUpdatedCollection(params.id)
+                    router.navigate({pathname: "/(collections)", params: {collectionName: collectionName, url: url, collectionDescription: collectionDescription, image: image }});
+                })
 
-            console.log("Collection updated!");
-            router.navigate("/(collections)");
+   
+               console.log("Collection updated!");
+            
+              
+
+           }
+            
         } catch (error) {
             console.error(error);
+            console.log("oops")
         }
     };
 
@@ -245,7 +288,7 @@ function EditCollection() {
                             No recipes found in this collection.
                         </Text>
                     )}
-                    {recipes.map((recipe, index) => (
+                    { recipes === "" ? recipes.map((recipe, index) => (
                         <View
                             key={index}
                             className='flex-row  justify-center items-center mt-4 mb-4'
@@ -280,7 +323,7 @@ function EditCollection() {
                                 </Text>
                             </Pressable>
                         </View>
-                    ))}
+                    )) : null }
                 </View>
                 <View>
                     <Button

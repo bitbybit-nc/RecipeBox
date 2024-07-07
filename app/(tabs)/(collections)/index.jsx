@@ -1,10 +1,11 @@
 import { CollectionList } from '@/components/CollectionList';
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, Button, ScrollView, StyleSheet } from "react-native";
 import firestore from "@react-native-firebase/firestore"
 import auth from "@react-native-firebase/auth";
 import { firebase } from '@react-native-firebase/auth';
+
 
 
 const styles = StyleSheet.create({
@@ -66,15 +67,15 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
+  const {collectionName, url, collectionDescription, image} = useLocalSearchParams()
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(false)
   const [empty, setEmpty] = useState(false)
   const user = firebase.auth().currentUser;
-    
-  
+   
   useEffect(() => {
-      setLoading(true)
-      setEmpty(false)
+      // setLoading(true)
+      setEmpty(false) 
       firestore()
       .collection('Collections')
       .get()
@@ -94,9 +95,10 @@ export default function HomeScreen() {
         }
 
         setCollections(filteredList)
-        setLoading(false)
+        // setLoading(false)
       })  
-    }, [])
+
+    }, [ collectionName, url, collectionDescription, image])
     
   if (loading) {
       return (

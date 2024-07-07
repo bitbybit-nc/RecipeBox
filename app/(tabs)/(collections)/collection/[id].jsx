@@ -1,84 +1,132 @@
-import { useLocalSearchParams } from "expo-router";
-import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
+import { useLocalSearchParams, useNavigation, router } from "expo-router";
+import {
+  Text,
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  Button,
+} from "react-native";
 import React, { useEffect, useState } from "react";
-import firestore from "@react-native-firebase/firestore";
-
+import firestore, { collection } from "@react-native-firebase/firestore";
+import { RecipeSmallCard } from "../../../../components/RecipeSmallCard";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 function SingleCollection() {
-  const { id } = useLocalSearchParams();
+  const { id, user } = useLocalSearchParams();
   const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(false)
-  const [empty, setEmpty] = useState(false)
-
-  const styles = StyleSheet.create({
-    heading: { flex: 1, padding: 16, backgroundColor: '#fff' },
-    recipes: { flex: 1, backgroundColor: '#FFEB3B', padding: 16 }
-  })
+  const [loading, setLoading] = useState(false);
+  const [empty, setEmpty] = useState(false);
+  const [collectionName, setCollectionName] = useState("");
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [updateSearch, setUpdateSearch] = useState("");
+  const navigation = useNavigation();
 
   useEffect(() => {
-    setLoading(true)
-      firestore()
-      .collection('Collections')
+    navigation.setOptions({
+      title: "",
+      headerRight: () => {
+        return <Button title="Edit" onPress={routeToEdit} />;
+      },
+      unmountOnBlur: true,
+    });
+    setLoading(true);
+    firestore()
+      .collection("Collections")
       .doc(id)
       .get()
       .then((querySnapshot) => {
-      
-        return querySnapshot.data()
+        const data = querySnapshot.data();
+        setCollectionName(data.name);
+        return data;
       })
-      .then((data)=> {
-        console.log(data)
-        if (data.recipes_list.length !== 0){
+      .then((data) => {
+        if (data.recipes_list.length) {
           firestore()
-          .collection('Recipes')
-          .where('__name__', 'in', data.recipe_id)
-          .get()
-          .then((querySnapshot) => {
-            const recipesList = []
-            querySnapshot.forEach((documentSnapshot) => {
-              recipesList.push(documentSnapshot.data())
-            })
-            setRecipes(recipesList)
-            setLoading(false)
-          })
+            .collection("Recipes")
+            .where("__name__", "in", data.recipes_list)
+            .get()
+            .then((querySnapshot) => {
+              const recipesList = [];
+              querySnapshot.forEach((documentSnapshot) => {
+                recipesList.push({
+                  data: documentSnapshot.data(),
+                  id: documentSnapshot.id,
+                });
+              });
+              setRecipes(recipesList);
+              setLoading(false);
+            });
         } else {
-          setLoading(false)
-          setEmpty(true)
+          setLoading(false);
+          setEmpty(true);
         }
-      })
-  }, []) 
- 
+      });
+  }, [collectionName]);
+
+  const routeToEdit = () => {
+    router.navigate(`/edit-collection/${id}`);
+  };
+
+  const handleSearch = (query) => {
+    setUpdateSearch(query);
+    const formattedSearch = query.toLowerCase();
+    const filter = recipes.filter((recipe) => {
+      return recipe.data.title.toLowerCase().includes(formattedSearch);
+    });
+    setFilteredRecipes(filter);
+  };
+
   if (loading) {
     return (
       <View>
         <ActivityIndicator />
       </View>
-    )
+    );
   }
 
   if (empty) {
     <View>
       <Text> This is empty </Text>
-    </View>
+    </View>;
   }
 
   return (
-    <View style={styles.heading}>
-        <Text>HELLO FROM COLLECTION INNER TAB ID: {id}</Text>
-    <View style={styles.recipes}>
-
-     {recipes.map((recipe, index)=> {
-      return <Text key={index}>{recipe.title}</Text>
-     })}
+    <View className="flex-1 bg-white">
+      <View className="pt-7 mx-4">
+        <Text className="text-center font-medium mb-4 text-lg">
+          {collectionName}
+        </Text>
+        <View className="px-3 py-5 items-center bg-slate-100 rounded-full flex-row gap-x-2 border border-slate-200">
+          <FontAwesome name="search" size={15} color="grey" />
+          <TextInput
+            placeholder="Search Recipes..."
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={(search) => handleSearch(search)}
+            value={updateSearch}
+          />
+        </View>
+      </View>
+      <View className="mx-3 flex-1">
+        {!recipes.length || (updateSearch && !filteredRecipes.length) ? (
+          <Text className="text-center mt-20">No Recipes Found</Text>
+        ) : (
+          <FlatList
+            data={updateSearch === "" ? recipes : filteredRecipes}
+            renderItem={(recipe, index) => (
+              <RecipeSmallCard key={index} recipe={recipe} user={user} />
+            )}
+            numColumns={2}
+            showsVerticalScrollIndicator={false}
+            horizontal={false}
+            keyExtractor={(recipe, index) => index}
+          />
+        )}
+      </View>
     </View>
-  </View>
   );
 }
 
 export default SingleCollection;
-
-
-
-
-
-
-

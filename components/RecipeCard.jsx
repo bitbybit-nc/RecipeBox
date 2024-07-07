@@ -12,7 +12,7 @@ import firestore from "@react-native-firebase/firestore";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 
-export function RecipeCard({ id, user }) {
+export function RecipeCard({ id, user, collectionAdded, navigation }) {
   const [currentRecipe, setCurrentRecipe] = useState({});
   const [currentCollections, setCurrentCollections] = useState([]);
   const [recipeUser, setRecipeUser] = useState();
@@ -77,7 +77,7 @@ export function RecipeCard({ id, user }) {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, collectionAdded, navigation]);
 
   const formatCookTime = (mins) => {
     if (mins > 60) {

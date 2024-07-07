@@ -5,7 +5,7 @@ import { RecipeCard } from "../../../../components/RecipeCard";
 import { Ionicons } from "@expo/vector-icons";
 
 function SingleRecipe() {
-  const { id, user, recipeUser } = useLocalSearchParams();
+  const { id, user, recipeUser, collectionAdded } = useLocalSearchParams();
   const navigation = useNavigation();
 
   const handleEdit = () => {
@@ -41,7 +41,7 @@ function SingleRecipe() {
     });
   }, []);
 
-  return <RecipeCard id={id} user={user} />;
+  return <RecipeCard id={id} user={user} collectionAdded={collectionAdded} />;
 }
 
 export default SingleRecipe;

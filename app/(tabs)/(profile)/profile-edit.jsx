@@ -125,7 +125,7 @@ export default function MyProfilePage() {
           multiline={true}
           placeholder={username}
           onChangeText={(text) =>
-            setUserDoc({ ...currentUserDoc, username: text })
+            setUserDoc({ ...userDoc, username: text })
           }
         />
       </View>

@@ -5,7 +5,7 @@ import { firebase } from "@react-native-firebase/auth";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 
-export function AddCollectionInfo({ currentCollections, id }) {
+export function AddCollectionInfo({ currentCollections, id, location }) {
   const [collectionList, setCollectionList] = useState([]);
   const [selectedCollection, setSelectedCollection] = useState();
   const [isPickerHidden, setIsPickerHidden] = useState(false);
@@ -59,7 +59,7 @@ export function AddCollectionInfo({ currentCollections, id }) {
         .then(() => {
           alert(`Added To Your Collection`);
           router.navigate({
-            pathname: `/recipe/${id}`,
+            pathname: `/${location}/recipe/${id}`,
             params: {
               collectionAdded: selectedCollection,
               user: user.uid,

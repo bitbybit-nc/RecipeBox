@@ -141,6 +141,7 @@ export function RecipeCard({
                   params: {
                     currentCollections: JSON.stringify(currentCollections),
                     id: id,
+                    location: location,
                   },
                 })
               }

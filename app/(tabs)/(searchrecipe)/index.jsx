@@ -114,7 +114,7 @@ export default function SearchRecipesPage() {
     setUpdateSearch(query);
     const formattedSearch = query.toLowerCase();
     const filter = recipes.filter((recipe) => {
-      return recipe.title.toLowerCase().includes(formattedSearch);
+      return recipe.data.title.toLowerCase().includes(formattedSearch);
     });
     setFilteredRecipes(filter);
   };

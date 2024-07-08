@@ -12,7 +12,13 @@ import firestore from "@react-native-firebase/firestore";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 
-export function RecipeCard({ id, user, collectionAdded, navigation }) {
+export function RecipeCard({
+  id,
+  user,
+  collectionAdded,
+  navigation,
+  location,
+}) {
   const [currentRecipe, setCurrentRecipe] = useState({});
   const [currentCollections, setCurrentCollections] = useState([]);
   const [recipeUser, setRecipeUser] = useState();
@@ -131,7 +137,7 @@ export function RecipeCard({ id, user, collectionAdded, navigation }) {
               className="p-2"
               onPress={() =>
                 router.push({
-                  pathname: "/recipe/add-to-collection",
+                  pathname: `/${location}/recipe/add-to-collection`,
                   params: {
                     currentCollections: JSON.stringify(currentCollections),
                     id: id,

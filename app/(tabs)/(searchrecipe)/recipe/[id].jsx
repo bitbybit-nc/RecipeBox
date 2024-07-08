@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 function SingleRecipe() {
   const { id, user, recipeUser, collectionAdded } = useLocalSearchParams();
   const navigation = useNavigation();
-
+  const location = "(searchrecipe)";
   const handleEdit = () => {
     if (currentRecipe) {
       router.navigate({
@@ -41,7 +41,14 @@ function SingleRecipe() {
     });
   }, []);
 
-  return <RecipeCard id={id} user={user} collectionAdded={collectionAdded} />;
+  return (
+    <RecipeCard
+      id={id}
+      user={user}
+      collectionAdded={collectionAdded}
+      location={location}
+    />
+  );
 }
 
 export default SingleRecipe;

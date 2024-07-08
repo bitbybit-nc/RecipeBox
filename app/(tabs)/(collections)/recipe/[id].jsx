@@ -8,7 +8,7 @@ import { RecipeCard } from "../../../../components/RecipeCard";
 function SingleRecipe() {
   const { id, user, recipeUser, collectionAdded } = useLocalSearchParams();
   const navigation = useNavigation();
-
+  const location = "(collections)";
   const handleEdit = () => {
     router.navigate({
       pathname: `/edit-recipe/${id}`,
@@ -36,7 +36,14 @@ function SingleRecipe() {
     });
   }, []);
 
-  return <RecipeCard id={id} user={user} collectionAdded={collectionAdded} />;
+  return (
+    <RecipeCard
+      id={id}
+      user={user}
+      collectionAdded={collectionAdded}
+      location={location}
+    />
+  );
 }
 
 export default SingleRecipe;

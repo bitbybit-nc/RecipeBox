@@ -84,7 +84,7 @@ export function CollectionList({ collection, id, user }) {
         }}
       >
         <Image
-          source={{ uri: collection.image_url }}
+          source={{ uri: collection.image_url !== "" && collection.image_url !== undefined ? collection.image_url : "https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg"}}
           style={{ width: "100%", height: "100%", borderRadius: 8 }}
         />
       </View>

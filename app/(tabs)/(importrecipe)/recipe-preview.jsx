@@ -17,6 +17,7 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
@@ -26,6 +27,8 @@ import { FA6Style } from "@expo/vector-icons/build/FontAwesome6";
 import * as ImagePicker from "expo-image-picker";
 import { firebase } from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
+import { Menu, PaperProvider, Divider } from "react-native-paper";
+import { Picker } from "react-native-web";
 
 export default function RecipePreview() {
   const user = firebase.auth().currentUser;
@@ -34,7 +37,6 @@ export default function RecipePreview() {
   const [dietaryOptions, setDietaryOptions] = useState([]);
   const [selected, setSelected] = useState([]);
   const [image, setImage] = useState(null);
-  // const [recipeId, setRecipeId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
@@ -57,6 +59,7 @@ export default function RecipePreview() {
       const result = await firestore().collection("Dietary_needs").get();
       const options = result.docs.map((doc) => ({
         name: doc._data.slug,
+        displayName: doc._data.display_name,
         imgUrl: doc._data.image_url,
       }));
       setDietaryOptions(options);
@@ -113,9 +116,15 @@ export default function RecipePreview() {
     }
   };
 
+  // const [visible, setVisible] = useState(false);
+  // const openMenu = () => setVisible(true);
+  // const closeMenu = () => setVisible(false);
+
+  const [isListOpen, setIsListOpen] = useState(false);
+
   return (
     <ScrollView>
-      <View className = "m-2">
+      <View className="m-2">
         <View>
           {isLoading ? (
             <ActivityIndicator size="large" color="#FB923C" />
@@ -127,13 +136,9 @@ export default function RecipePreview() {
                   className="w-4/5 h-44 self-center rounded-md"
                 />
                 <View>
-                  <Pressable className = "bg-zinc-300" onPress={pickImage}>
+                  <Pressable className="bg-zinc-300" onPress={pickImage}>
                     <Text>Replace Btn</Text>
                   </Pressable>
-                {/* <Button
-                  title="Replace Btn"
-                  onPress={pickImage}
-                /> */}
                 </View>
               </View>
             )
@@ -146,8 +151,6 @@ export default function RecipePreview() {
               onPress={pickImage}
             />
           )}
-
-          {/* {image && <Image source={{ uri: image }} style={styles.image} />} */}
         </View>
         <Text className="text-xs">Recipe Title</Text>
         <TextInput
@@ -162,19 +165,24 @@ export default function RecipePreview() {
           </Text>
         </View>
         <Text className="text-xs">Dietary info</Text>
+
         <View
           className="flex-row items-center justify-start mb-4"
           style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}
         >
           {dietaryOptions &&
             dietaryOptions.map((option, index) => {
-              return selected.map((element) => {
-                if (option.name === element) {
+              const formattedName = option.name.includes("_")
+                ? option.name.replace("_", " ")
+                : option.name;
+
+              return selected.map((element, selectedIndex) => {
+                if (formattedName.toLowerCase() === element.toLowerCase()) {
                   return (
                     <View>
                       <Image
                         style={styles.tinyLogo}
-                        key={index}
+                        key={selectedIndex}
                         source={{ uri: option.imgUrl }}
                       />
                     </View>
@@ -184,13 +192,31 @@ export default function RecipePreview() {
             })}
         </View>
 
+        {/* <View style={{ zIndex: 100 }}>
+          <View className="p-0 m-0">
+            <PaperProvider>
+                <Menu
+                  elevation="MD3Elevation"
+                  style = {styles.dropdown}
+                  anchor={<Button onPress={openMenu}>Show options</Button>}
+                  visible={visible}
+                  onDismiss={closeMenu}
+                >
+                  <View className="bg-zinc-100 rounded-xl">
+                    {dietaryOptions.map((option) => (
+                      <Menu.Item onPress={() => {}} title ={option.displayName} />
+                    ))}
+                  </View>
+                </Menu>
+            </PaperProvider>
+          </View>
+        </View> */}
         <MultipleSelectList
           setSelected={(val) => setSelected(val)}
-          data={dietaryOptions.map((option) => option.name)}
+          data={dietaryOptions.map((option) => option.displayName)}
           save="name"
           search={false}
         />
-
         <View>
           <Text className="text-xs">Categories</Text>
           <TextInput
@@ -255,5 +281,12 @@ const styles = StyleSheet.create({
   selectedList: {
     margin: 0,
     padding: 0,
+  },
+  dropdown: {
+    // marginLeft: -5,
+    // marginRight: 10,
+    marginTop: -220,
+    width: 300,
+    borderRadius: 50,
   },
 });

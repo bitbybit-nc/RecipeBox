@@ -9,9 +9,9 @@ export function RecipeSmallCard({
     item: { data, id },
   },
   user,
+  location,
 }) {
   const [dietary, setDietary] = useState([]);
-
   useEffect(() => {
     if (data.dietary_needs.length) {
       firestore()
@@ -29,7 +29,7 @@ export function RecipeSmallCard({
           console.log(error);
         });
     }
-  }, [data]);
+  }, [data, location]);
 
   const formatCookTime = (mins) => {
     if (mins > 60) {
@@ -45,7 +45,7 @@ export function RecipeSmallCard({
 
   const navigateToRecipe = () => {
     router.navigate({
-      pathname: `/recipe/${id}`,
+      pathname: `/${location}/recipe/${id}`,
       params: { user: user, recipeUser: data.uid },
     });
   };

@@ -100,7 +100,7 @@ function AddCollection() {
                         {image ? (
                             <View>
                                 <Image
-                                    source={{ uri: image }}
+                                    // source={{ uri: image }}
                                     style={styles.midLogo}
                                 />
                             </View>

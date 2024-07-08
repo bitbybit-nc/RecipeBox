@@ -42,7 +42,16 @@ function SingleCollection() {
         return data;
       })
       .then((data) => {
-        if (data.recipes_list.length) {
+        if (data.recipes_list === undefined) {
+          firestore()
+            .collection("Recipes")
+            .get()
+            .then((querySnapshot) => {
+              const recipesList = [];
+              setRecipes(recipesList);
+              setLoading(false);
+            });
+        } else if (data.recipes_list.length) {
           firestore()
             .collection("Recipes")
             .where("__name__", "in", data.recipes_list)

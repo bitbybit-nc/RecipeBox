@@ -9,12 +9,12 @@ function Layout() {
 
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ headerShown: true }} />
+      <Stack.Screen name="index" options={{ title: "Import A Recipe" }} />
       <Stack.Screen
         name="recipe-preview"
         options={{
           headerShown: true,
-          title: "Recipe Preview",
+          title: "",
         }}
       />
       <Stack.Screen

@@ -27,7 +27,7 @@ import { FA6Style } from "@expo/vector-icons/build/FontAwesome6";
 import * as ImagePicker from "expo-image-picker";
 import { firebase } from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
-import { Menu, PaperProvider, Divider } from "react-native-paper";
+// import { Menu, PaperProvider, Divider } from "react-native-paper";
 import { Picker } from "react-native-web";
 
 export default function RecipePreview() {

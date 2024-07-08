@@ -1,8 +1,6 @@
 import {
-  Link,
   useLocalSearchParams,
   useRouter,
-  Stack,
   useNavigation,
 } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -58,6 +56,7 @@ function EditCollection() {
           const data = collectionDoc.data();
           setCollectionName(data.name);
           setUrl(data.image_url);
+          setImage(data.image_url)
           setCollectionVisibility(data.is_public);
           setCollectionDescription(data.description);
           if (data.image_url) setVisible(true);
@@ -76,9 +75,7 @@ function EditCollection() {
 
             const recipes = await Promise.all(recipePromises);
             setRecipes(recipes.filter((recipe) => recipe !== null));
-          } else {
-            setRecipes({ not_found: "Not Found" });
-          }
+          } 
         }
       } catch (error) {
         console.error(error);
@@ -101,7 +98,7 @@ function EditCollection() {
             name: collectionName,
             image_url: image,
             is_public: collectionVisibility,
-            // description: collectionDescription,
+            description: collectionDescription,
             recipes_list: updatedRecipesList,
           })
           .then(() => {
@@ -125,8 +122,7 @@ function EditCollection() {
             name: collectionName,
             image_url: image,
             is_public: collectionVisibility,
-            // description: collectionDescription,
-            recipes_list: [],
+            description: collectionDescription,
           })
           .then(() => {
             setUpdatedCollection(params.id);
@@ -145,7 +141,6 @@ function EditCollection() {
       }
     } catch (error) {
       console.error(error);
-      console.log("oops");
     }
   };
 
@@ -196,7 +191,6 @@ function EditCollection() {
 
   const handleCollectionVisibility = () => {
     setCollectionVisibility(!collectionVisibility);
-    console.log(collectionVisibility);
   };
 
   const pickImage = async () => {

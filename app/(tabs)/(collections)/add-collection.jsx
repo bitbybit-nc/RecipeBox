@@ -27,6 +27,7 @@ function AddCollection() {
     const [collectionDescription, setCollectionDescription] = useState("");
 
     useEffect(() => {
+        console.log("HERE")
         if (url !== "") {
             setVisible(true);
             setImage(null);
@@ -49,13 +50,13 @@ function AddCollection() {
             .then(() => {
                 router.navigate({
                     pathname: "/(collections)",
+                    params: { collectionAdded:JSON.stringify({ collectionName: collectionName,image:image,collectionDescription:collectionDescription, collectionVisibility })}
                 });
                 console.log("Collection added!");
             });
-
+        
         setCollectionName("");
         setUrl("");
-        setImage(null);
         setVisible(false);
     };
 
@@ -75,7 +76,7 @@ function AddCollection() {
         if (!result.canceled) {
             const imageUri = result.assets[0].uri;
             const reference = storage().ref(
-                `Users/${user.uid}/${new Date().getTime()}.jpg`
+                `Users/Collections/${user.uid}/${new Date().getTime()}.jpg`
             );
 
             try {
@@ -93,14 +94,13 @@ function AddCollection() {
 
     return (
         <View className='flex-1 p-4 bg-white'>
-            {/* <Text className="text-2xl font-bold mb-4">Add Collection</Text> */}
             <View className='m-3 p-3 w-screen items-center flex-row justify-center'>
                 <View className='w-9/12'>
                     <Pressable onPress={pickImage}>
                         {image ? (
                             <View>
                                 <Image
-                                    // source={{ uri: image }}
+                                    source={{ uri: image }}
                                     style={styles.midLogo}
                                 />
                             </View>
@@ -108,7 +108,7 @@ function AddCollection() {
                             <View>
                                 <Image
                                     source={{
-                                        uri: "https://uxwing.com/wp-content/themes/uxwing/download/video-photography-multimedia/add-image-photo-icon.png",
+                                        uri: image,
                                     }}
                                     style={styles.midLogo}
                                 />

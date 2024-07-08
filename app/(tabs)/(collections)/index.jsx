@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  const {collectionName, url, collectionDescription, image} = useLocalSearchParams()
+  const {collectionName, url, collectionDescription, image, collectionAdded} = useLocalSearchParams()
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [empty, setEmpty] = useState(false);
   const user = firebase.auth().currentUser;
-
+  
   useEffect(() => {
     setLoading(true);
     setEmpty(false);
@@ -106,7 +106,7 @@ export default function HomeScreen() {
         setCollections(filteredList);
         setLoading(false);
       });
-  }, [ collectionName, url, collectionDescription, image]);
+  }, [ collectionName, url, collectionDescription, image, collectionAdded]);
 
   if (loading) {
     return (
@@ -182,24 +182,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-/*
-
-
-<ScrollView contentContainerStyle={styles.scrollViewContent}>
-  <View style={styles.gridContainer}>
-    {collections.map((collection, index) => (
-      <View style={styles.collectionItem} key={index}>
-        <CollectionList collection={collection.data} id={collection.id} />
-      </View>
-    )}
-  </View>
-<
-
- /*<View className="p-4">
-            <View className="flex-row flex-wrap justify-between">
-              {collections.map((collection, index) => (
-                <CollectionList key={index} collection={collection.data} id={collection.id} user={user.uid}/>
-              ))}
-            </View>
-          </View>}*/

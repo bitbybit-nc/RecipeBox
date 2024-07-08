@@ -1,10 +1,4 @@
-import {
-  Link,
-  useLocalSearchParams,
-  useRouter,
-  Stack,
-  router,
-} from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import {
   StyleSheet,
   View,
@@ -13,30 +7,25 @@ import {
   Button,
   FlatList,
   Image,
-  item,
   Pressable,
   ScrollView,
   ActivityIndicator,
-  TouchableWithoutFeedback,
 } from "react-native";
-import { MultipleSelectList } from "react-native-dropdown-select-list";
+
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
-import auth from "@react-native-firebase/auth";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { FontAwesome6 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { firebase } from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
-// import { Menu, PaperProvider, Divider } from "react-native-paper";
-import { Picker } from "react-native-web";
 
 export default function RecipePreview() {
   const user = firebase.auth().currentUser;
-
   const params = useLocalSearchParams();
   const [dietaryOptions, setDietaryOptions] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [dietariesChosen, setDietariesChosen] = useState([]);
+  const [cookTime, setCookTime] = useState({ hours: 0, mins: 0 });
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,19 +51,52 @@ export default function RecipePreview() {
         name: doc._data.slug,
         displayName: doc._data.display_name,
         imgUrl: doc._data.image_url,
+        slug: doc._data.slug,
+        id: doc.id,
       }));
-      setDietaryOptions(options);
+      if (!dietariesChosen.length) {
+        setDietaryOptions(options);
+      } else {
+        const chosenIds = dietariesChosen.map((chosenItem) => chosenItem.id);
+        const filteredOptions = options.filter(
+          (item) => !item.id.includes(chosenIds)
+        );
+        setDietaryOptions(filteredOptions);
+      }
     };
     fetchDietaryOptions();
   }, []);
-
   useEffect(() => {
     setNewRecipe((prevRecipe) => ({
       ...prevRecipe,
-      dietary_needs: selected,
+      dietary_needs: dietariesChosen.length
+        ? dietariesChosen.map((chosen) => chosen.id)
+        : [],
       recipe_img_url: image,
+      cook_time: formatCookTime(cookTime),
     }));
-  }, [selected, image]);
+  }, [dietariesChosen, image, cookTime]);
+
+  const formatCookTime = (time) => {
+    const hoursInMins = Number(time.hours) * 60;
+    return Number(time.mins) + hoursInMins;
+  };
+
+  const addDietary = (dietary) => {
+    const index = dietaryOptions.map((item) => item.id).indexOf(dietary.id);
+    setDietariesChosen([...dietariesChosen, dietary]);
+    dietaryOptions.splice(index, 1);
+    setDietaryOptions([...dietaryOptions]);
+  };
+
+  const removeDietary = (dietary) => {
+    const dietaryToRemoveIndex = dietariesChosen
+      .map((item) => item.id)
+      .indexOf(dietary.id);
+    dietariesChosen.splice(dietaryToRemoveIndex, 1);
+    setDietariesChosen([...dietariesChosen]);
+    setDietaryOptions([dietary, ...dietaryOptions]);
+  };
 
   function handleInput(key, value) {
     setNewRecipe((recipe) => {
@@ -84,9 +106,28 @@ export default function RecipePreview() {
 
   async function handleRecipeSubmit() {
     try {
-      const result = await firestore().collection("Recipes").add(newRecipe);
-      const recipeId = result.id;
-      router.push({ pathname: "/recipe-card", params: { recipeId } });
+      if (
+        !image ||
+        (newRecipe.title === "") | (newRecipe.ingredients === "") ||
+        newRecipe.cooking_method === "" ||
+        newRecipe.cook_time === ""
+      ) {
+        if (!image) {
+          alert("Please upload an image");
+        } else if (newRecipe.title === "") {
+          alert("Please add a recipe title");
+        } else if (newRecipe.ingredients === "") {
+          alert("Please add ingredients for this recipe");
+        } else if (newRecipe.cooking_method === "") {
+          alert("Please add a method for this recipe");
+        } else if (newRecipe.cook_time === "") {
+          alert("Please add cook time for this recipe");
+        }
+      } else {
+        const result = await firestore().collection("Recipes").add(newRecipe);
+        const recipeId = result.id;
+        router.push({ pathname: "/recipe-card", params: { recipeId } });
+      }
     } catch (err) {
       console.log(err);
     }
@@ -117,38 +158,34 @@ export default function RecipePreview() {
     }
   };
 
-  // const [visible, setVisible] = useState(false);
-  // const openMenu = () => setVisible(true);
-  // const closeMenu = () => setVisible(false);
-
-  const [isListOpen, setIsListOpen] = useState(false);
-
   return (
     <ScrollView className="bg-white">
       <View className="m-2 p-2">
         <View>
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#FB923C" />
-          ) : (
-            image && (
-              <View className="w-full relative mb-4">
-                <Image
-                  source={{ uri: image }}
-                  className="w-full h-40 rounded-lg"
-                />
-                <View className="absolute top-3 right-3">
-                  <Pressable
-                    className="bg-orange-400 w-6 h-6 rounded-full justify-center items-center"
-                    onPress={pickImage}
-                  >
-                    <Icon name="pencil" style={{ color: "white" }} />
-                  </Pressable>
+          {isLoading
+            ? null
+            : image && (
+                <View className="w-full relative mb-4">
+                  <Image
+                    source={{ uri: image }}
+                    className="w-full h-40 rounded-lg"
+                  />
+                  <View className="absolute top-3 right-3">
+                    <Pressable
+                      className="bg-orange-400 w-6 h-6 rounded-full justify-center items-center"
+                      onPress={pickImage}
+                    >
+                      <Icon name="pencil" style={{ color: "white" }} />
+                    </Pressable>
+                  </View>
                 </View>
-              </View>
-            )
-          )}
+              )}
         </View>
-        {image ? null : (
+        {image ? null : isLoading ? (
+          <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+            <ActivityIndicator size="large" color="#FB923C" />
+          </View>
+        ) : (
           <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
             <Button title="Add Recipe Image" onPress={pickImage} />
           </View>
@@ -161,88 +198,108 @@ export default function RecipePreview() {
         />
 
         <View className="mb-3">
-          <Text className="text-xs mb-1">Original Source</Text>
+          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
+            Original Source
+          </Text>
           <View className="rounded-md bg-slate-100">
             <Text className=" p-3 text-zinc-500">{params.url}</Text>
           </View>
         </View>
 
-        <Text className="text-xs">Dietary info</Text>
-        <View
-          className="flex-row items-center justify-start mb-4"
-          style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}
-        >
-          {dietaryOptions &&
-            dietaryOptions.map((option, index) => {
-              const formattedName = option.name.includes("_")
-                ? option.name.replace("_", " ")
-                : option.name;
-
-              return selected.map((element, selectedIndex) => {
-                if (formattedName.toLowerCase() === element.toLowerCase()) {
-                  return (
-                    <View>
-                      <Image
-                        style={styles.tinyLogo}
-                        key={selectedIndex}
-                        source={{ uri: option.imgUrl }}
-                      />
-                    </View>
-                  );
-                }
-              });
-            })}
+        <Text className="block text-sm font-medium leading-6 text-gray-900">
+          Dietary Needs
+        </Text>
+        <View className="my-2">
+          <FlatList
+            data={dietaryOptions}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => addDietary(item)}
+                className="items-center mr-3"
+              >
+                <View
+                  key={item.slug}
+                  className="mr-1 bg-slate-100 rounded-full p-1 items-center justify-center"
+                >
+                  <Image className="w-8 h-8" source={{ uri: item.imgUrl }} />
+                </View>
+                <Text className="mt-1 text-xs">{item.displayName}</Text>
+              </Pressable>
+            )}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(dietary, index) => index}
+          />
+        </View>
+        <View className="my-2">
+          {dietariesChosen.length ? (
+            <Text className="mb-1 text-xs">Selected:</Text>
+          ) : null}
+          <FlatList
+            data={dietariesChosen}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() => removeDietary(item)}
+                className="items-center mr-3"
+              >
+                <View
+                  key={item.slug}
+                  className="bg-green-300 rounded-full p-1 items-center justify-center"
+                >
+                  <Image className="w-8 h-8" source={{ uri: item.imgUrl }} />
+                </View>
+                <Text className="mt-1 text-xs">{item.displayName}</Text>
+              </Pressable>
+            )}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(dietary, index) => index}
+          />
         </View>
 
-        {/* <View style={{ zIndex: 100 }}>
-          <View className="p-0 m-0">
-            <PaperProvider>
-                <Menu
-                  elevation="MD3Elevation"
-                  style = {styles.dropdown}
-                  anchor={<Button onPress={openMenu}>Show options</Button>}
-                  visible={visible}
-                  onDismiss={closeMenu}
-                >
-                  <View className="bg-zinc-100 rounded-xl">
-                    {dietaryOptions.map((option) => (
-                      <Menu.Item onPress={() => {}} title ={option.displayName} />
-                    ))}
-                  </View>
-                </Menu>
-            </PaperProvider>
-          </View>
-        </View> */}
-        <MultipleSelectList
-          setSelected={(val) => setSelected(val)}
-          data={dietaryOptions.map((option) => option.displayName)}
-          save="name"
-          placeholder="Select Dietaries"
-          search={false}
-        />
-        <View>
-          <Text className="text-xs mb-1">Categories</Text>
+        <View className="mt-3">
+          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
+            Categories
+          </Text>
           <TextInput
             className="bg-zinc-200 rounded-md mb-3 p-3"
             placeholder="Pasta, Main Course"
             onChangeText={(text) => handleInput("category", text)}
           />
         </View>
-        <View className="mb-3">
+        <View className="my-3">
           <View className="flex-row gap-x-3 items-center">
             <FontAwesome6 name="clock" size={24} color="black" />
-            <TextInput
-              className="bg-zinc-200 rounded-md p-3 "
-              inputMode="numeric"
-              keyboardType="numeric"
-              placeholder="30"
-              onChangeText={(text) => handleInput("cook_time", text)}
-            />
-            <Text className="">Mins</Text>
+            <View className="items-center flex-row">
+              <TextInput
+                className="bg-zinc-200 rounded-md px-3 py-2"
+                inputMode="numeric"
+                keyboardType="numeric"
+                placeholder="1"
+                onChangeText={(hours) =>
+                  setCookTime({ ...cookTime, hours: hours })
+                }
+              />
+              <Text className="ml-2">Hour(s)</Text>
+            </View>
+            <View className="items-center flex-row">
+              <TextInput
+                className="bg-zinc-200 rounded-md px-3 py-2"
+                inputMode="numeric"
+                keyboardType="numeric"
+                placeholder="30"
+                onChangeText={(mins) =>
+                  setCookTime({ ...cookTime, mins: mins })
+                }
+              />
+              <Text className="ml-2">Mins</Text>
+            </View>
           </View>
         </View>
         <View className="mb-3">
-          <Text className="text-xs mb-1">Ingredient List</Text>
+          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
+            Ingredient List
+          </Text>
           <TextInput
             className="bg-zinc-200 rounded-md p-3"
             multiline={true}
@@ -251,7 +308,9 @@ export default function RecipePreview() {
           />
         </View>
         <View className="mb-3">
-          <Text className="text-xs mb-1">Cooking instructions</Text>
+          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
+            Cooking instructions
+          </Text>
           <TextInput
             className="bg-zinc-200 rounded-md p-3"
             multiline={true}

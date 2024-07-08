@@ -16,7 +16,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 
-export default function MyProfilePage() {
+export default function MyProfileEditPage() {
   const [isLoading, setIsLoading] = useState(false);
   const user = firebase.auth().currentUser;
   const { username } = useLocalSearchParams();
@@ -44,10 +44,13 @@ export default function MyProfilePage() {
         `Users/${user._user.uid}/${new Date().getTime()}.jpg`
       );
 
+      console.log(reference, "<<reference");
+
       try {
         setIsLoading(true);
         await reference.putFile(imageUri);
         const imageUrlDownload = await reference.getDownloadURL();
+        console.log(imageUrlDownload, "imageURLDownload");
         setUserProfileDB({ ...userProfileDB, photoURL: imageUrlDownload });
         setUserDoc({ ...userDoc, photoURL: imageUrlDownload });
         setIsLoading(false);
@@ -63,21 +66,23 @@ export default function MyProfilePage() {
     });
   }
 
-  function handleProfileSave() {
-    user.updateProfile(userProfileDB);
+  async function handleProfileSave() {
+    try {
+      user.updateProfile(userProfileDB);
 
-    firestore()
-      .collection("Users")
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.docs.map((doc) => {
-          if (doc._data.uid === user.uid) {
-            firestore().collection("Users").doc(doc.id).update(userDoc);
-          }
-        });
+      const querySnapshot = await firestore().collection("Users").get();
+      querySnapshot.docs.map((doc) => {
+        if (doc._data.uid === user.uid) {
+          firestore().collection("Users").doc(doc.id).update(userDoc);
+        }
       });
 
-    console.log("Im saving!");
+      await firebase.auth().currentUser.reload();
+      router.replace("(profile)");
+      console.log("Im saving!");
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
@@ -124,9 +129,7 @@ export default function MyProfilePage() {
           className="bg-zinc-200 rounded-md p-1 w-60"
           multiline={true}
           placeholder={username}
-          onChangeText={(text) =>
-            setUserDoc({ ...userDoc, username: text })
-          }
+          onChangeText={(text) => setUserDoc({ ...userDoc, username: text })}
         />
       </View>
 

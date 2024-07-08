@@ -131,12 +131,15 @@ export default function RecipePreview() {
         !image ||
         (newRecipe.title === "") | (newRecipe.ingredients === "") ||
         newRecipe.cooking_method === "" ||
-        newRecipe.cook_time === ""
+        newRecipe.cook_time === "" ||
+        !currentSelectionCollection
       ) {
         if (!image) {
           alert("Please upload an image");
         } else if (newRecipe.title === "") {
           alert("Please add a recipe title");
+        } else if (!currentSelectionCollection) {
+          alert("Please add a collection to add this recipe to");
         } else if (newRecipe.ingredients === "") {
           alert("Please add ingredients for this recipe");
         } else if (newRecipe.cooking_method === "") {

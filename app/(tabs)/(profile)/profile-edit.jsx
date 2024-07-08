@@ -30,7 +30,7 @@ export default function MyProfileEditPage() {
   });
 
   const changeProfileImage = async () => {
-    console.log("im doing something!");
+    // console.log("im doing something!");
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -44,13 +44,13 @@ export default function MyProfileEditPage() {
         `Users/${user._user.uid}/${new Date().getTime()}.jpg`
       );
 
-      console.log(reference, "<<reference");
+      // console.log(reference, "<<reference");
 
       try {
         setIsLoading(true);
         await reference.putFile(imageUri);
         const imageUrlDownload = await reference.getDownloadURL();
-        console.log(imageUrlDownload, "imageURLDownload");
+        // console.log(imageUrlDownload, "imageURLDownload");
         setUserProfileDB({ ...userProfileDB, photoURL: imageUrlDownload });
         setUserDoc({ ...userDoc, photoURL: imageUrlDownload });
         setIsLoading(false);
@@ -79,7 +79,7 @@ export default function MyProfileEditPage() {
 
       await firebase.auth().currentUser.reload();
       router.replace("(profile)");
-      console.log("Im saving!");
+      // console.log("Im saving!");
     } catch (err) {
       console.log(err);
     }

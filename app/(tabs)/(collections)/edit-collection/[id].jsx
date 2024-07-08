@@ -46,22 +46,26 @@ function EditCollection() {
       unmountOnBlur: true,
       title: "Edit",
     });
+
+    
     const fetchData = async () => {
       try {
         const collectionDoc = await firestore()
           .collection("Collections")
           .doc(params.id)
           .get();
-        if (collectionDoc.exists) {
-          const data = collectionDoc.data();
-          setCollectionName(data.name);
-          setUrl(data.image_url);
-          setImage(data.image_url)
-          setCollectionVisibility(data.is_public);
-          setCollectionDescription(data.description);
-          if (data.image_url) setVisible(true);
 
-          if (data.recipes) {
+          if (collectionDoc.exists) {
+            const data = collectionDoc.data();
+            
+            setCollectionName(data.name);
+            setUrl(data.image_url);
+            setImage(data.image_url)
+            setCollectionVisibility(data.is_public);
+            setCollectionDescription(data.description);
+            if (data.image_url) setVisible(true);
+            
+            if (data.recipes_list) {
             const recipePromises = data.recipes_list.map(async (recipeId) => {
               const recipeDoc = await firestore()
                 .collection("Recipes")
@@ -284,8 +288,7 @@ function EditCollection() {
               No recipes found in this collection.
             </Text>
           )}
-          {recipes === ""
-            ? recipes.map((recipe, index) => (
+          {recipes ? recipes.map((recipe, index) => (
                 <View
                   key={index}
                   className="flex-row  justify-center items-center mt-4 mb-4"

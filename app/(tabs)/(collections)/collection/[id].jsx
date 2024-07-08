@@ -14,7 +14,7 @@ import { RecipeSmallCard } from "../../../../components/RecipeSmallCard";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 function SingleCollection() {
-  const { id, user } = useLocalSearchParams();
+  const { id, user, recipeId } = useLocalSearchParams();
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [empty, setEmpty] = useState(false);
@@ -43,17 +43,13 @@ function SingleCollection() {
       })
       .then((data) => {
         if (data.recipes_list === undefined) {
-          firestore()
-            .collection("Recipes")
-            .get()
-            .then((querySnapshot) => {
-              const recipesList = [];
-              setRecipes(recipesList);
-              setLoading(false);
-            });
+          const recipesList = [];
+          setRecipes(recipesList);
+          setLoading(false);
         } else if (data.recipes_list.length) {
           firestore()
             .collection("Recipes")
+            .orderBy("timestamp", "desc")
             .where("__name__", "in", data.recipes_list)
             .get()
             .then((querySnapshot) => {
@@ -72,7 +68,7 @@ function SingleCollection() {
           setEmpty(true);
         }
       });
-  }, [collectionName]);
+  }, [collectionName, recipeId]);
 
   const routeToEdit = () => {
     router.navigate(`/edit-collection/${id}`);

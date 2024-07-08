@@ -23,6 +23,7 @@ export default function SearchRecipesPage() {
   const { dietaries, matchAndDietaries, ratingOrder } = useLocalSearchParams();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
+  const location = "(searchrecipe)";
 
   useEffect(() => {
     navigation.setOptions({
@@ -171,6 +172,7 @@ export default function SearchRecipesPage() {
                   key={recipe.index}
                   recipe={recipe}
                   user={user.uid}
+                  location={location}
                 />
               )}
               numColumns={2}

@@ -22,7 +22,7 @@ function SingleCollection() {
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [updateSearch, setUpdateSearch] = useState("");
   const navigation = useNavigation();
-
+  const location = "(collections)";
   useEffect(() => {
     navigation.setOptions({
       title: "",
@@ -116,7 +116,12 @@ function SingleCollection() {
           <FlatList
             data={updateSearch === "" ? recipes : filteredRecipes}
             renderItem={(recipe, index) => (
-              <RecipeSmallCard key={index} recipe={recipe} user={user} />
+              <RecipeSmallCard
+                key={index}
+                recipe={recipe}
+                user={user}
+                location={location}
+              />
             )}
             numColumns={2}
             showsVerticalScrollIndicator={false}

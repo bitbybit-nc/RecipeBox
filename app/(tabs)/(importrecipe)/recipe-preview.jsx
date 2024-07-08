@@ -23,7 +23,8 @@ import { MultipleSelectList } from "react-native-dropdown-select-list";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
-import { FA6Style } from "@expo/vector-icons/build/FontAwesome6";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { FontAwesome6 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { firebase } from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
@@ -123,49 +124,50 @@ export default function RecipePreview() {
   const [isListOpen, setIsListOpen] = useState(false);
 
   return (
-    <ScrollView>
-      <View className="m-2">
+    <ScrollView className="bg-white">
+      <View className="m-2 p-2">
         <View>
           {isLoading ? (
             <ActivityIndicator size="large" color="#FB923C" />
           ) : (
             image && (
-              <View>
+              <View className="w-full relative mb-4">
                 <Image
                   source={{ uri: image }}
-                  className="w-4/5 h-44 self-center rounded-md"
+                  className="w-full h-40 rounded-lg"
                 />
-                <View>
-                  <Pressable className="bg-zinc-300" onPress={pickImage}>
-                    <Text>Replace Btn</Text>
+                <View className="absolute top-3 right-3">
+                  <Pressable
+                    className="bg-orange-400 w-6 h-6 rounded-full justify-center items-center"
+                    onPress={pickImage}
+                  >
+                    <Icon name="pencil" style={{ color: "white" }} />
                   </Pressable>
                 </View>
               </View>
             )
           )}
         </View>
-        <View>
-          {image ? null : (
-            <Button
-              title="Add Recipe Image from Camera Roll"
-              onPress={pickImage}
-            />
-          )}
-        </View>
-        <Text className="text-xs">Recipe Title</Text>
+        {image ? null : (
+          <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+            <Button title="Add Recipe Image" onPress={pickImage} />
+          </View>
+        )}
+
         <TextInput
-          className="bg-zinc-200 rounded-md p-1"
+          className="bg-slate-100 rounded-md p-3 mb-3"
           placeholder="Recipe Title"
           onChangeText={(text) => handleInput("title", text)}
         />
-        <View>
-          <Text className="text-xs">Original Source</Text>
-          <Text className="bg-zinc-200 rounded-md p-1 text-zinc-500">
-            {params.url}
-          </Text>
-        </View>
-        <Text className="text-xs">Dietary info</Text>
 
+        <View className="mb-3">
+          <Text className="text-xs mb-1">Original Source</Text>
+          <View className="rounded-md bg-slate-100">
+            <Text className=" p-3 text-zinc-500">{params.url}</Text>
+          </View>
+        </View>
+
+        <Text className="text-xs">Dietary info</Text>
         <View
           className="flex-row items-center justify-start mb-4"
           style={[styles.dietaryImagesContainer, { flexDirection: "row" }]}
@@ -215,39 +217,45 @@ export default function RecipePreview() {
           setSelected={(val) => setSelected(val)}
           data={dietaryOptions.map((option) => option.displayName)}
           save="name"
+          placeholder="Select Dietaries"
           search={false}
         />
         <View>
-          <Text className="text-xs">Categories</Text>
+          <Text className="text-xs mb-1">Categories</Text>
           <TextInput
-            className="bg-zinc-200 rounded-md p-1"
-            placeholder="Categories"
+            className="bg-zinc-200 rounded-md mb-3 p-3"
+            placeholder="Pasta, Main Course"
             onChangeText={(text) => handleInput("category", text)}
           />
         </View>
-        <View>
-          <Text className="text-xs">Cooking time</Text>
-          <TextInput
-            className="bg-zinc-200 rounded-md p-1"
-            placeholder="Cooking time"
-            onChangeText={(text) => handleInput("cook_time", text)}
-          />
+        <View className="mb-3">
+          <View className="flex-row gap-x-3 items-center">
+            <FontAwesome6 name="clock" size={24} color="black" />
+            <TextInput
+              className="bg-zinc-200 rounded-md p-3 "
+              inputMode="numeric"
+              keyboardType="numeric"
+              placeholder="30"
+              onChangeText={(text) => handleInput("cook_time", text)}
+            />
+            <Text className="">Mins</Text>
+          </View>
         </View>
-        <View>
-          <Text className="text-xs">Ingredient List</Text>
+        <View className="mb-3">
+          <Text className="text-xs mb-1">Ingredient List</Text>
           <TextInput
-            className="bg-zinc-200 rounded-md p-1"
+            className="bg-zinc-200 rounded-md p-3"
             multiline={true}
-            placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+            placeholder="2 large sweet potatoes2 tablespoons olive oilSalt, to tastePepper, to taste1 ripe avocado1/2 cup Greek yogurt1 tablespoon lime juice2 tablespoons fresh cilantro, chopped"
             onChangeText={(text) => handleInput("ingredients", text)}
           />
         </View>
-        <View>
-          <Text className="text-xs">Cooking instructions</Text>
+        <View className="mb-3">
+          <Text className="text-xs mb-1">Cooking instructions</Text>
           <TextInput
-            className="bg-zinc-200 rounded-md p-1"
+            className="bg-zinc-200 rounded-md p-3"
             multiline={true}
-            placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            placeholder="1. Preheat oven to 425°F (220°C). 2. Cut the cauliflower into florets.3. Toss the cauliflower with olive oil, turmeric, cumin, salt, and pepper.4. Spread the cauliflower on a baking sheet.5. Roast in the preheated oven for 20-25 minutes, or until tender and browned.6. Remove from the oven and squeeze lemon juice over the top before serving."
             onChangeText={(text) => handleInput("cooking_method", text)}
           />
         </View>

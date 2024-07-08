@@ -11,17 +11,17 @@ function Layout() {
     <Stack>
       <Stack.Screen name="index" options={{ title: "Import A Recipe" }} />
       <Stack.Screen
-        name="recipe-preview"
-        options={{
-          headerShown: true,
-          title: "",
-        }}
-      />
-      <Stack.Screen
         name="recipe-card"
         options={{
           headerShown: false,
           title: "Recipe Card",
+        }}
+      />
+      <Stack.Screen
+        name="add-collection-choice"
+        options={{
+          headerShown: false,
+          presentation: "modal",
         }}
       />
       <Stack.Screen

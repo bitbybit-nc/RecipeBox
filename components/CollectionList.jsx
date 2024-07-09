@@ -1,20 +1,13 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Button,
-  Pressable,
-} from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Link, router } from "expo-router";
 import firestore from "@react-native-firebase/firestore";
-// import EditCollection from "@/app/(tabs)/(collections)/edit-collection/[id]";
-// import Icon from "react-native-vector-icons/FontAwesome";
+import { useIsFocused } from "@react-navigation/native";
 
 export function CollectionList({ collection, id, user }) {
+  const [recipeInfo, setRecipeInfo] = useState([]);
   const [recipeImage, setRecipeImage] = useState([]);
+  const isFocused = useIsFocused();
 
   function handleCollectionPress() {
     router.push({ pathname: `/collection/${id}`, params: { user: user } });
@@ -23,24 +16,35 @@ export function CollectionList({ collection, id, user }) {
   useEffect(() => {
     async function fetchRecipeImage() {
       try {
-        const imageURL = await Promise.all(
+        const collectionInfo = await Promise.all(
           collection.recipes_list.map(async (doc) => {
             const recipeDoc = await firestore()
               .collection("Recipes")
               .doc(doc)
               .get();
-            return recipeDoc._data.recipe_img_url;
+            return recipeDoc.data();
           })
         );
-        if (imageURL !== undefined) {
-          setRecipeImage(imageURL);
-        }
+
+        setRecipeInfo(collectionInfo);
+
+        const sortedRecipes = recipeInfo.sort((a, b) => {
+          if (a.timestamp.seconds === b.timestamp.seconds) {
+            return b.timestamp.nanoseconds - a.timestamp.nanoseconds;
+          }
+          return b.timestamp.seconds - a.timestamp.seconds;
+        });
+        const recipeUrlArr = sortedRecipes.map((recipe) => {
+          return recipe.recipe_img_url;
+        });
+
+        setRecipeImage(recipeUrlArr);
       } catch (err) {
         console.log(err);
       }
     }
     fetchRecipeImage();
-  }, [collection.recipes_list]);
+  }, [collection.recipes_list, isFocused]);
 
   return (
     <View>
@@ -50,74 +54,46 @@ export function CollectionList({ collection, id, user }) {
       >
         <View className="h-[180px] w-[180px] mb-1 bg-white rounded gap-1">
           <View className="flex flex-row flex-wrap gap-0.5">
-            {recipeImage.length >= 1
-              ? recipeImage.map((singleRecipe, index) => {
-                  return (
-                    <Image
-                      className="w-[86px] h-[86px]"
-                      key={index}
-                      source={{ uri: singleRecipe }}
-                    />
-                  );
-                })
-              : null}
+            {recipeImage.length === 0 && !collection.image_url ? (
+              <Image
+                className="w-[174px] h-[174px]"
+                source={{
+                  uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
+                }}
+              />
+            ) : recipeImage.length === 0 && collection.image_url ? (
+              <Image
+                className="w-[174px] h-[174px]"
+                source={{
+                  uri: collection.image_url,
+                }}
+              />
+            ) : (
+              recipeImage.slice(0, 4).map((singleRecipe, index) => {
+                return (
+                  <Image
+                    className="w-[86px] h-[86px]"
+                    key={index}
+                    source={{ uri: singleRecipe }}
+                  />
+                );
+              })
+            )}
           </View>
-
         </View>
-          <View>
+
+        <View>
+          {collection.name.length > 20 ? (
+            <Text className="text-sm font-semibold text-base mb-1">
+              {collection.name.slice(0, 19) + "..."}
+            </Text>
+          ) : (
             <Text className="text-sm font-semibold text-base mb-1">
               {collection.name}
             </Text>
-          </View>
+          )}
+        </View>
       </Pressable>
     </View>
   );
 }
-
-{
-  /* <Image
-  source={{
-    uri:
-      collection.image_url !== "" &&
-      collection.image_url !== undefined
-        ? collection.image_url
-        : "https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg",
-  }}
-  style={{ width: "100%", height: "100%", borderRadius: 8 }}
-/> */
-}
-
-// const styles = StyleSheet.create({
-//   container: {
-//     width: "48%",
-//     padding: 16,
-//     marginBottom: 4,
-//   },
-//   image: {
-//     width: "100%",
-//     height: 150,
-//     borderRadius: 8,
-//     backgroundColor: "#ddd",
-//   },
-//   title: {
-//     fontSize: 16,
-//     fontWeight: "bold",
-//     marginVertical: 8,
-//   },
-//   link: {
-//     fontSize: 16,
-//     color: "blue",
-//   },
-//   editButton: {
-//     position: "absolute",
-//     top: -14,
-//     right: -15,
-//     backgroundColor: "#FF9F00",
-//     borderRadius: 16,
-//     padding: 4,
-//   },
-//   editIcon: {
-//     fontSize: 15,
-//     color: "white",
-//   },
-// });

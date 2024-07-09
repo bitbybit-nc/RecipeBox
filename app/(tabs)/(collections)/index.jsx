@@ -130,7 +130,7 @@ export default function HomeScreen() {
         ) : (
           <View className="flex-wrap flex-row gap-4">
             {collections.map((collection, index) => (
-              <View className="w-48" key={index}>
+              <View className="w-[174px]" key={index}>
                 <CollectionList
                   collection={collection.data}
                   id={collection.id}
@@ -141,15 +141,6 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
-
-      {/* <View className="mx-32 p-1 bg-orange-400 w-40 rounded-full absolute bottom-2">
-        <Button
-          className="m-0 p-0 text-lg font-medium"
-          color={"white"}
-          onPress={handleAddCollection}
-          title="Add Collection"
-        />
-      </View> */}
 
       <View className="items-center">
         <Pressable

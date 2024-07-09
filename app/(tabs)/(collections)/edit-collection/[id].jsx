@@ -1,9 +1,5 @@
-import {
-  useLocalSearchParams,
-  useRouter,
-  useNavigation,
-} from "expo-router";
-import React, { useState, useEffect } from "react";
+import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
+import React, { useState, useEffect, Fragment } from "react";
 import {
   View,
   Text,
@@ -19,7 +15,9 @@ import {
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
+import Icon from "react-native-vector-icons/FontAwesome";
 import * as ImagePicker from "expo-image-picker";
+import { RecipeSmallDisplay } from "../../../../components/RecipeSmallDisplay";
 
 function EditCollection() {
   const params = useLocalSearchParams();
@@ -28,26 +26,22 @@ function EditCollection() {
   const router = useRouter();
   const [collectionName, setCollectionName] = useState("");
   const [url, setUrl] = useState("");
-  const [visible, setVisible] = useState(false);
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFromPencil, setIsLoadingFromPencil] = useState(false);
   const [collectionVisibility, setCollectionVisibility] = useState(
     collectionVisibility || false
   );
   const [collectionDescription, setCollectionDescription] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [recipesToRemove, setRecipesToRemove] = useState([]);
-  const [updatedCollection, setUpdatedCollection] = useState();
-  const errorimageUrl =
-    "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
 
   useEffect(() => {
     navigation.setOptions({
       unmountOnBlur: true,
-      title: "Edit",
+      title: "Edit Collection",
     });
 
-    
     const fetchData = async () => {
       try {
         const collectionDoc = await firestore()
@@ -55,17 +49,16 @@ function EditCollection() {
           .doc(params.id)
           .get();
 
-          if (collectionDoc.exists) {
-            const data = collectionDoc.data();
-            
-            setCollectionName(data.name);
-            setUrl(data.image_url);
-            setImage(data.image_url)
-            setCollectionVisibility(data.is_public);
-            setCollectionDescription(data.description);
-            if (data.image_url) setVisible(true);
-            
-            if (data.recipes_list) {
+        if (collectionDoc.exists) {
+          const data = collectionDoc.data();
+
+          setCollectionName(data.name);
+          setUrl(data.image_url);
+          setImage(data.image_url);
+          setCollectionVisibility(data.is_public);
+          setCollectionDescription(data.description);
+
+          if (data.recipes_list) {
             const recipePromises = data.recipes_list.map(async (recipeId) => {
               const recipeDoc = await firestore()
                 .collection("Recipes")
@@ -79,7 +72,7 @@ function EditCollection() {
 
             const recipes = await Promise.all(recipePromises);
             setRecipes(recipes.filter((recipe) => recipe !== null));
-          } 
+          }
         }
       } catch (error) {
         console.error(error);
@@ -106,14 +99,16 @@ function EditCollection() {
             recipes_list: updatedRecipesList,
           })
           .then(() => {
-            setUpdatedCollection(params.id);
             router.navigate({
               pathname: "/(collections)",
               params: {
-                collectionName: collectionName,
-                url: url,
-                collectionDescription: collectionDescription,
-                image: image,
+                updatedCollection: {
+                  collectionName: collectionName,
+                  url: url,
+                  collectionDescription: collectionDescription,
+                  image: image,
+                  recipes_list: updatedRecipesList,
+                },
               },
             });
           });
@@ -129,14 +124,16 @@ function EditCollection() {
             description: collectionDescription,
           })
           .then(() => {
-            setUpdatedCollection(params.id);
             router.navigate({
               pathname: "/(collections)",
               params: {
-                collectionName: collectionName,
-                url: url,
-                collectionDescription: collectionDescription,
-                image: image,
+                updatedCollection: {
+                  collectionName: collectionName,
+                  url: url,
+                  collectionDescription: collectionDescription,
+                  image: image,
+                  recipes_list: updatedRecipesList,
+                },
               },
             });
           });
@@ -225,114 +222,147 @@ function EditCollection() {
     }
   };
 
+  const pickImageFromPencil = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const reference = await storage().ref(
+        `Recipes/${user._user.uid}/${new Date().getTime()}.jpg`
+      );
+
+      try {
+        setIsLoadingFromPencil(true);
+        await reference.putFile(imageUri);
+        const imageUrlDownload = await reference.getDownloadURL();
+        setImage(imageUrlDownload);
+        setIsLoadingFromPencil(false);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
   return (
-    <ScrollView>
-      <View className="flex-1 p-4 bg-white">
-        <View className="m-3 p-3 w-screen items-center flex-row justify-center">
-          <View className="w-9/12">
-            <Pressable onPress={pickImage}>
-              <View>
-                <Image
-                  source={{
-                    uri: image || url || errorimageUrl,
-                  }}
-                  style={styles.midLogo}
-                />
-                {!image && !url && (
-                  <Text className="text-center text-sm font-medium leading-6">
-                    Add to collection image
-                  </Text>
-                )}
+    <Fragment>
+      <ScrollView className="mb-10">
+        <View className="flex-1 p-4 bg-white">
+          <View>
+            {isLoadingFromPencil ? (
+              <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+                <ActivityIndicator size="large" color="#FB923C" />
               </View>
-            </Pressable>
+            ) : (
+              image && (
+                <View className="w-full relative mb-4">
+                  <Image
+                    source={{ uri: image }}
+                    className="w-full h-40 rounded-lg"
+                  />
+                  <View className="absolute top-3 right-3">
+                    <Pressable
+                      className="bg-orange-400 w-6 h-6 rounded-full justify-center items-center"
+                      onPress={pickImageFromPencil}
+                    >
+                      <Icon name="pencil" style={{ color: "white" }} />
+                    </Pressable>
+                  </View>
+                </View>
+              )
+            )}
+          </View>
+          {image ? null : isLoading ? (
+            <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+              <ActivityIndicator size="large" color="#FB923C" />
+            </View>
+          ) : (
+            <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+              <Button title="Add Recipe Image" onPress={pickImage} />
+            </View>
+          )}
+
+          <View>
+            <TextInput
+              className="bg-slate-100 rounded-md p-3 mb-4"
+              placeholder="Collection Name"
+              value={collectionName}
+              onChangeText={setCollectionName}
+            />
+
+            <View className="mb-4">
+              <TextInput
+                className="bg-slate-100 h-32 rounded-md p-3"
+                placeholder="Collection Description"
+                multiline
+                rows={4}
+                numberOfLines={4}
+                maxLength={50}
+                autoComplete="off"
+                textAlignVertical="top"
+                value={collectionDescription}
+                onChangeText={setCollectionDescription}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-x-3 mt-4 mb-4">
+            <Switch
+              trackColor={{ false: "#767577", true: "rgb(54 83 20)" }}
+              className="scale-75"
+              thumbColor={collectionVisibility ? "rgb(134 239 172)" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={handleCollectionVisibility}
+              value={collectionVisibility}
+            />
+            <Text className="text-lg text-black">
+              {collectionVisibility
+                ? "Collection is: Public"
+                : "Collection is: Private"}
+            </Text>
+          </View>
+
+          <View className="mt-3">
+            {recipes.length > 0 ? (
+              <Text className="text-lg text-center">
+                Remove from: {collectionName}
+              </Text>
+            ) : (
+              <Text className="text-md text-center">
+                No recipes found in this collection.
+              </Text>
+            )}
+          </View>
+
+          <View className="my-3 justify-center">
+            <View className="flex-wrap flex-row gap-y-3 justify-between w-full">
+              {recipes
+                ? recipes.map((recipe, index) => (
+                    <Pressable
+                      key={index}
+                      onPress={() => handleRemoveRecipe(recipe.id)}
+                      className={`w-1/2 ${index % 2 ? "pl-3" : "pr-3"}
+                      ${
+                        recipesToRemove.includes(recipe.id) ? "opacity-20" : ""
+                      }`}
+                    >
+                      <RecipeSmallDisplay recipe={recipe} />
+                    </Pressable>
+                  ))
+                : null}
+            </View>
           </View>
         </View>
-
-        <View>
-          <TextInput
-            className="h-10 border border-gray-400 mb-4 px-2"
-            placeholder="Collection Name"
-            value={collectionName}
-            onChangeText={setCollectionName}
-          />
-
-          <TextInput
-            className="h-20 border border-gray-400 mb-4 px-2"
-            placeholder="Collection Description"
-            value={collectionDescription}
-            onChangeText={setCollectionDescription}
-          />
-        </View>
-        <View className="flex-row items-center justify-between mt-4 mb-4">
-          <Text className="text-xl font-medium text-black">
-            {collectionVisibility
-              ? "Collection is: Public"
-              : "Collection is: Private"}
-          </Text>
-          <Switch
-            trackColor={{ false: "#767577", true: "rgb(54 83 20)" }}
-            className="scale-100"
-            thumbColor={collectionVisibility ? "rgb(134 239 172)" : "#f4f3f4"}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={handleCollectionVisibility}
-            value={collectionVisibility}
-          />
-        </View>
-        <View className="m-3 p-3  justify-center bg-red-200">
-          {recipes.length > 0 ? (
-            <Text className="text-xl font-medium text-black ">
-              remove from: {collectionName}
-            </Text>
-          ) : (
-            <Text className="text-xl  font-medium text-black">
-              No recipes found in this collection.
-            </Text>
-          )}
-          {recipes ? recipes.map((recipe, index) => (
-                <View
-                  key={index}
-                  className="flex-row  justify-center items-center mt-4 mb-4"
-                >
-                  <Pressable
-                    onPress={() => handleRemoveRecipe(recipe.id)}
-                    className={`text-m font-medium text-black ${
-                      recipesToRemove.includes(recipe.id)
-                        ? "opacity-20 bg-red-200"
-                        : ""
-                    }`}
-                  >
-                    <View className="flex-row  justify-center items-center">
-                      <Image
-                        source={
-                          recipe.recipe_img_url
-                            ? { uri: recipe.recipe_img_url }
-                            : { uri: errorimageUrl }
-                        }
-                        style={[
-                          styles.recipeImage,
-                          recipesToRemove.includes(recipe.id) &&
-                            styles.recipeImageRemoved,
-                        ]}
-                      />
-                    </View>
-                    <Text className={`text-m font-medium text-black`}>
-                      {recipe.title}
-                    </Text>
-                  </Pressable>
-                </View>
-              ))
-            : null}
-        </View>
-        <View>
-          <Button title="Save Changes" onPress={handleEditCollection} />
-          <Button
-            title="Delete Collection"
-            onPress={handleDelete}
-            color="red"
-          />
-        </View>
+      </ScrollView>
+      <View className="absolute bottom-0 left-0 right-0 bg-slate-100 py-2 px-8 justify-between flex-row">
+        <Button title="Delete Collection" onPress={handleDelete} color="red" />
+        <Button title="Save Changes" onPress={handleEditCollection} />
       </View>
-    </ScrollView>
+    </Fragment>
   );
 }
 

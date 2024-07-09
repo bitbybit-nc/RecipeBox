@@ -404,7 +404,7 @@ export default function RecipePreview() {
             Categories
           </Text>
           <TextInput
-            className="bg-zinc-200 rounded-md mb-3 p-3"
+            className="bg-slate-100 rounded-md mb-3 p-3"
             placeholder="Pasta, Main Course"
             onChangeText={(text) => handleInput("category", text)}
             value={newRecipe.category}
@@ -415,7 +415,7 @@ export default function RecipePreview() {
             <FontAwesome6 name="clock" size={24} color="black" />
             <View className="items-center flex-row">
               <TextInput
-                className="bg-zinc-200 rounded-md px-3 py-2"
+                className="bg-slate-100 rounded-md px-3 py-2"
                 inputMode="numeric"
                 keyboardType="numeric"
                 placeholder="1"
@@ -428,7 +428,7 @@ export default function RecipePreview() {
             </View>
             <View className="items-center flex-row">
               <TextInput
-                className="bg-zinc-200 rounded-md px-3 py-2"
+                className="bg-slate-100 rounded-md px-3 py-2"
                 inputMode="numeric"
                 keyboardType="numeric"
                 placeholder="30"
@@ -446,7 +446,7 @@ export default function RecipePreview() {
             Ingredient List
           </Text>
           <TextInput
-            className="bg-zinc-200 rounded-md p-3"
+            className="bg-slate-100 rounded-md p-3"
             multiline={true}
             placeholder="2 large sweet potatoes2 tablespoons olive oilSalt, to tastePepper, to taste1 ripe avocado1/2 cup Greek yogurt1 tablespoon lime juice2 tablespoons fresh cilantro, chopped"
             onChangeText={(text) => handleInput("ingredients", text)}
@@ -458,7 +458,7 @@ export default function RecipePreview() {
             Cooking instructions
           </Text>
           <TextInput
-            className="bg-zinc-200 rounded-md p-3"
+            className="bg-slate-100 rounded-md p-3"
             multiline={true}
             placeholder="1. Preheat oven to 425°F (220°C). 2. Cut the cauliflower into florets.3. Toss the cauliflower with olive oil, turmeric, cumin, salt, and pepper.4. Spread the cauliflower on a baking sheet.5. Roast in the preheated oven for 20-25 minutes, or until tender and browned.6. Remove from the oven and squeeze lemon juice over the top before serving."
             onChangeText={(text) => handleInput("cooking_method", text)}

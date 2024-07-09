@@ -52,18 +52,18 @@ export function CollectionList({ collection, id, user }) {
         className="pt-2 pl-1.5 border border-orange-200 rounded-xl relative"
         onPress={handleCollectionPress}
       >
-        <View className="h-[180px] w-[180px] mb-1 bg-white rounded gap-1">
+        <View className="h-[160px] w-[160px] mb-1 bg-white rounded gap-1">
           <View className="flex flex-row flex-wrap gap-0.5">
             {recipeImage.length === 0 && !collection.image_url ? (
               <Image
-                className="w-[174px] h-[174px]"
+                className="w-[155px] h-[155px]"
                 source={{
                   uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
                 }}
               />
             ) : recipeImage.length === 0 && collection.image_url ? (
               <Image
-                className="w-[174px] h-[174px]"
+                className="w-[155px] h-[155px]"
                 source={{
                   uri: collection.image_url,
                 }}
@@ -72,7 +72,7 @@ export function CollectionList({ collection, id, user }) {
               recipeImage.slice(0, 4).map((singleRecipe, index) => {
                 return (
                   <Image
-                    className="w-[86px] h-[86px]"
+                    className="w-[76px] h-[76px]"
                     key={index}
                     source={{ uri: singleRecipe }}
                   />
@@ -84,11 +84,11 @@ export function CollectionList({ collection, id, user }) {
 
         <View>
           {collection.name.length > 20 ? (
-            <Text className="text-sm font-semibold text-base mb-1">
+            <Text className="text-sm font-semibold mb-1">
               {collection.name.slice(0, 19) + "..."}
             </Text>
           ) : (
-            <Text className="text-sm font-semibold text-base mb-1">
+            <Text className="text-sm font-semibold  mb-1">
               {collection.name}
             </Text>
           )}

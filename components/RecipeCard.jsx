@@ -18,6 +18,7 @@ export function RecipeCard({
   collectionAdded,
   navigation,
   location,
+  updatedRecipe,
 }) {
   const [currentRecipe, setCurrentRecipe] = useState({});
   const [currentCollections, setCurrentCollections] = useState([]);
@@ -83,7 +84,7 @@ export function RecipeCard({
     };
 
     fetchData();
-  }, [id, collectionAdded, navigation]);
+  }, [id, collectionAdded, navigation, updatedRecipe]);
 
   const formatCookTime = (mins) => {
     if (mins > 60) {

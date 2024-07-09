@@ -1,186 +1,213 @@
 import React, { useState, useEffect } from "react";
 import {
-    View,
-    Text,
-    TextInput,
-    Button,
-    Image,
-    Pressable,
-    Switch,
-    StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Button,
+  Image,
+  Pressable,
+  Switch,
+  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 function AddCollection() {
-    const user = auth().currentUser;
-    const router = useRouter();
-    const [collectionName, setCollectionName] = useState("");
-    const [url, setUrl] = useState("");
-    const [visible, setVisible] = useState(false);
-    const [image, setImage] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [collectionVisibility, setCollectionVisibility] = useState(false);
-    const [collectionDescription, setCollectionDescription] = useState("");
+  const user = auth().currentUser;
+  const router = useRouter();
+  const [collectionName, setCollectionName] = useState("");
+  const [image, setImage] = useState(null);
+  const [collectionVisibility, setCollectionVisibility] = useState(false);
+  const [collectionDescription, setCollectionDescription] = useState("");
 
-    useEffect(() => {
-        console.log("HERE")
-        if (url !== "") {
-            setVisible(true);
-            setImage(null);
-        } else {
-            setVisible(false);
-        }
-    }, [url]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFromPencil, setIsLoadingFromPencil] = useState(false);
 
-    const handleAddCollection = async () => {
-        firestore()
-            .collection("Collections")
-            .add({
-                name: collectionName,
-                recipes_list: [],
-                is_public: collectionVisibility,
-                user_id: user.uid,
-                image_url: image || url,
-                description: collectionDescription,
-            })
-            .then(() => {
-                router.navigate({
-                    pathname: "/(collections)",
-                    params: { collectionAdded:JSON.stringify({ collectionName: collectionName,image:image,collectionDescription:collectionDescription, collectionVisibility })}
-                });
-                console.log("Collection added!");
-            });
-        
-        setCollectionName("");
-        setUrl("");
-        setVisible(false);
-    };
-
-    const handleCollectionVisiblity = async () => {
-        setCollectionVisibility(!collectionVisibility);
-    };
-
-    const pickImage = async () => {
-        setUrl("");
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
+  const handleAddCollection = async () => {
+    if (!collectionName) {
+      alert("Please add a collection name");
+    } else {
+      firestore()
+        .collection("Collections")
+        .add({
+          name: collectionName,
+          recipes_list: [],
+          is_public: collectionVisibility,
+          user_id: user.uid,
+          image_url: image
+            ? image
+            : "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcoll[…]?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
+          description: collectionDescription,
+        })
+        .then(() => {
+          router.navigate({
+            pathname: "/(collections)",
+            params: {
+              collectionAdded: JSON.stringify({
+                collectionName: collectionName,
+                image: image,
+                collectionDescription: collectionDescription,
+                collectionVisibility,
+              }),
+            },
+          });
+          console.log("Collection added!");
+          setCollectionName("");
+          setImage(null);
+          setCollectionVisibility(false);
+          setCollectionDescription("");
         });
+    }
+  };
 
-        if (!result.canceled) {
-            const imageUri = result.assets[0].uri;
-            const reference = storage().ref(
-                `Users/Collections/${user.uid}/${new Date().getTime()}.jpg`
-            );
+  const handleCollectionVisiblity = async () => {
+    setCollectionVisibility(!collectionVisibility);
+  };
 
-            try {
-                setIsLoading(true);
-                await reference.putFile(imageUri);
-                const imageUrlDownload = await reference.getDownloadURL();
-                setImage(imageUrlDownload);
-                setIsLoading(false);
-            } catch (err) {
-                console.log(err);
-                setIsLoading(false);
-            }
-        }
-    };
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-    return (
-        <View className='flex-1 p-4 bg-white'>
-            <View className='m-3 p-3 w-screen items-center flex-row justify-center'>
-                <View className='w-9/12'>
-                    <Pressable onPress={pickImage}>
-                        {image ? (
-                            <View>
-                                <Image
-                                    source={{ uri: image }}
-                                    style={styles.midLogo}
-                                />
-                            </View>
-                        ) : (
-                            <View>
-                                <Image
-                                    source={{
-                                        uri: image,
-                                    }}
-                                    style={styles.midLogo}
-                                />
-                                <Text className='text-center text-sm font-medium leading-6'>
-                                    Add to collection image
-                                </Text>
-                            </View>
-                        )}
-                    </Pressable>
-                </View>
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const reference = storage().ref(
+        `Users/Collections/${user.uid}/${new Date().getTime()}.jpg`
+      );
+
+      try {
+        setIsLoading(true);
+        await reference.putFile(imageUri);
+        const imageUrlDownload = await reference.getDownloadURL();
+        setImage(imageUrlDownload);
+        setIsLoading(false);
+      } catch (err) {
+        console.log(err);
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const pickImageFromPencil = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const reference = await storage().ref(
+        `Recipes/${user._user.uid}/${new Date().getTime()}.jpg`
+      );
+
+      try {
+        setIsLoadingFromPencil(true);
+        await reference.putFile(imageUri);
+        const imageUrlDownload = await reference.getDownloadURL();
+        setImage(imageUrlDownload);
+        setIsLoadingFromPencil(false);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  return (
+    <View className="flex-1 p-4 bg-white">
+      <View>
+        {isLoadingFromPencil ? (
+          <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+            <ActivityIndicator size="large" color="#FB923C" />
+          </View>
+        ) : (
+          image && (
+            <View className="w-full relative mb-4">
+              <Image
+                source={{ uri: image }}
+                className="w-full h-40 rounded-lg"
+              />
+              <View className="absolute top-3 right-3">
+                <Pressable
+                  className="bg-orange-400 w-6 h-6 rounded-full justify-center items-center"
+                  onPress={pickImageFromPencil}
+                >
+                  <Icon name="pencil" style={{ color: "white" }} />
+                </Pressable>
+              </View>
             </View>
-            {visible && (
-                <View className='items-center justify-center mt-4'>
-                    {url && (
-                        <Image
-                            source={{ uri: url }}
-                            className='w-32 h-32 rounded-full self-center'
-                        />
-                    )}
-                </View>
-            )}
-            <View>
-                <TextInput
-                    className='h-10 border border-gray-400 mb-4 px-2'
-                    placeholder='Collection Name'
-                    value={collectionName}
-                    onChangeText={setCollectionName}
-                />
-
-                <TextInput
-                    className='h-20 border border-gray-400 mb-4 px-2'
-                    placeholder='Collection Description'
-                    value={collectionDescription}
-                    onChangeText={setCollectionDescription}
-                />
-            </View>
-            <View className='flex-row items-center justify-between mt-4 mb-4'>
-                <Text className='text-xl font-medium text-black'>
-                    {collectionVisibility
-                        ? "Collection is: Public"
-                        : "Collection is: Private"}
-                </Text>
-                <Switch
-                    trackColor={{ false: "#767577", true: "rgb(54 83 20)" }}
-                    className='scale-100'
-                    thumbColor={
-                        collectionVisibility ? "rgb(134 239 172)" : "#f4f3f4"
-                    }
-                    ios_backgroundColor='#3e3e3e'
-                    onValueChange={handleCollectionVisiblity}
-                    value={collectionVisibility}
-                />
-            </View>
-            <Button title='Add collection' onPress={handleAddCollection} />
+          )
+        )}
+      </View>
+      {image ? null : isLoading ? (
+        <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+          <ActivityIndicator size="large" color="#FB923C" />
         </View>
-    );
+      ) : (
+        <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+          <Button title="Add Recipe Image" onPress={pickImage} />
+        </View>
+      )}
+
+      <View>
+        <TextInput
+          className="bg-slate-100 rounded-md p-3 mb-4"
+          placeholder="Collection Name"
+          value={collectionName}
+          onChangeText={setCollectionName}
+        />
+
+        <View className="mb-4">
+          <TextInput
+            className="bg-slate-100 h-32 rounded-md p-3"
+            placeholder="Collection Description"
+            multiline
+            rows={4}
+            numberOfLines={4}
+            maxLength={50}
+            autoComplete="off"
+            textAlignVertical="top"
+            value={collectionDescription}
+            onChangeText={setCollectionDescription}
+          />
+        </View>
+      </View>
+
+      <View className="flex-row items-center gap-x-3 mt-4 mb-4">
+        <Switch
+          trackColor={{ false: "#767577", true: "rgb(54 83 20)" }}
+          className="scale-75"
+          thumbColor={collectionVisibility ? "rgb(134 239 172)" : "#f4f3f4"}
+          ios_backgroundColor="#3e3e3e"
+          onValueChange={handleCollectionVisiblity}
+          value={collectionVisibility}
+        />
+        <Text className="text-lg text-black">
+          {collectionVisibility
+            ? "Collection is: Public"
+            : "Collection is: Private"}
+        </Text>
+      </View>
+
+      <Pressable
+        className="mt-5 p-3 bg-orange-400 w-full rounded-md"
+        onPress={handleAddCollection}
+      >
+        <Text className="text-white text-center text-sm font-medium leading-6">
+          Submit Recipe
+        </Text>
+      </Pressable>
+    </View>
+  );
 }
 
 export default AddCollection;
-
-const styles = StyleSheet.create({
-    midLogo: {
-        width: 300,
-        height: 100,
-    },
-    tinyLogo: {
-        width: 50,
-        height: 50,
-    },
-    profilePic: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-    },
-});

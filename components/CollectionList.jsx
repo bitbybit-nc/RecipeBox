@@ -9,8 +9,6 @@ export function CollectionList({ collection, id, user }) {
   const [recipeImage, setRecipeImage] = useState([]);
   const isFocused = useIsFocused();
 
-  console.log(collection.recipes_list, '<<<recipeList')
-
 
   function handleCollectionPress() {
     router.push({ pathname: `/collection/${id}`, params: { user: user } });

@@ -367,23 +367,3 @@ function EditCollection() {
 }
 
 export default EditCollection;
-
-const styles = StyleSheet.create({
-  midLogo: {
-    width: 300,
-    height: 100,
-  },
-  tinyLogo: {
-    width: 50,
-    height: 50,
-  },
-  profilePic: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-  },
-  recipeImage: {
-    width: 200,
-    height: 40,
-  },
-});

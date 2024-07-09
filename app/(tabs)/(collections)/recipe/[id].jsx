@@ -6,12 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { RecipeCard } from "../../../../components/RecipeCard";
 
 function SingleRecipe() {
-  const { id, user, recipeUser, collectionAdded } = useLocalSearchParams();
+  const { id, user, recipeUser, collectionAdded, updatedRecipe } =
+    useLocalSearchParams();
   const navigation = useNavigation();
   const location = "(collections)";
+
   const handleEdit = () => {
     router.navigate({
       pathname: `/edit-recipe/${id}`,
+      params: { user: user },
     });
   };
 
@@ -42,6 +45,7 @@ function SingleRecipe() {
       user={user}
       collectionAdded={collectionAdded}
       location={location}
+      updatedRecipe={updatedRecipe}
     />
   );
 }

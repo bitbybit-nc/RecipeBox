@@ -1,8 +1,7 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, FlatList, ScrollView } from "react-native";
 import auth from "@react-native-firebase/auth";
-import { Link, router } from "expo-router";
+import { Link, router, } from "expo-router";
 import { Image } from "expo-image";
-
 import { firebase } from "@react-native-firebase/auth";
 import { useEffect, useState } from "react";
 import firestore from "@react-native-firebase/firestore";
@@ -11,6 +10,8 @@ import Icon from "react-native-vector-icons/FontAwesome";
 export default function MyProfilePage() {
   const user = firebase.auth().currentUser;
   const [username, setUsername] = useState(null);
+  const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(false)
   const [displayNameTest, setDisplayNameTest] = useState(user.displayName);
 
   const logoutUser = () => {
@@ -32,7 +33,25 @@ export default function MyProfilePage() {
       });
     };
     fetchCurrentUser();
-
+    
+    firestore()
+      .collection("Recipes")
+      .where("uid", "==", user.uid)
+      .get()
+      .then((querySnapshot) => {
+        const recipesList = [];
+        querySnapshot.forEach((documentSnapshot) => {
+          recipesList.push({
+            data: documentSnapshot.data(),
+            id: documentSnapshot.id,
+          });
+        });
+        setRecipes(recipesList);
+        console.log(recipes)
+        setLoading(false);
+    });
+    
+    
     firebase
       .auth()
       .currentUser.reload()
@@ -56,11 +75,24 @@ export default function MyProfilePage() {
         />
       </View>
 
-      <View></View>
       <View>
         <Text className="mt-3">Name: {displayNameTest}</Text>
         <Text className="mt-3">Username: {username}</Text>
         <Text className="mt-3">Email: {user.email}</Text>
+      </View>
+      <View >
+        <Text>My Recipes</Text>
+        
+        <ScrollView className="bg-slate-100 rounded-md p-4 mb-3" style={{ maxHeight: 80, width: 200, margin: 10}}>
+          {recipes.map((recipe) => {
+            return (
+              <View key={recipe.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text key={recipe.id}>{recipe.data.title}</Text>
+                <Image source={{ uri: recipe.data.recipe_img_url }} style={{ width: 50, height: 50, marginLeft: 10 }}></Image>
+              </View>
+          )
+          })}
+        </ScrollView>
       </View>
 
       <Text className="mt-10">Public Profile coming soon!</Text>

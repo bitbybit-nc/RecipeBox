@@ -74,8 +74,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  const { collectionName, url, collectionDescription, image, collectionAdded } =
-    useLocalSearchParams();
+  const { updatedCollection, collectionAdded } = useLocalSearchParams();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [empty, setEmpty] = useState(false);
@@ -107,7 +106,7 @@ export default function HomeScreen() {
         setCollections(filteredList);
         setLoading(false);
       });
-  }, [collectionName, url, collectionDescription, image, collectionAdded]);
+  }, [updatedCollection, collectionAdded]);
 
   if (loading) {
     return (
@@ -123,19 +122,15 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView className = "flex-1 pt-3 px-3.5">
+      <ScrollView className="flex-1 pt-3 px-3.5">
         {empty ? (
-          <View
-            className = "items-center"
-          >
+          <View className="items-center">
             <Text>Add your collections here!</Text>
           </View>
         ) : (
-          <View
-          className = "flex-wrap flex-row gap-4"
-          >
+          <View className="flex-wrap flex-row gap-4">
             {collections.map((collection, index) => (
-              <View className = "w-48" key={index}>
+              <View className="w-48" key={index}>
                 <CollectionList
                   collection={collection.data}
                   id={collection.id}
@@ -147,7 +142,6 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-
       {/* <View className="mx-32 p-1 bg-orange-400 w-40 rounded-full absolute bottom-2">
         <Button
           className="m-0 p-0 text-lg font-medium"
@@ -157,16 +151,16 @@ export default function HomeScreen() {
         />
       </View> */}
 
-<View className = "items-center">
-      <Pressable
-        className="p-2 bg-orange-400 w-40 rounded-full absolute bottom-2 items-center"
-        onPress={handleAddCollection}
-      >
-        <Text className="text-white text-center text-lg font-medium leading-6">
-          Add Collection
-        </Text>
-      </Pressable>
-</View>
+      <View className="items-center">
+        <Pressable
+          className="p-2 bg-orange-400 w-40 rounded-full absolute bottom-2 items-center"
+          onPress={handleAddCollection}
+        >
+          <Text className="text-white text-center text-lg font-medium leading-6">
+            Add Collection
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

@@ -41,7 +41,7 @@ function AddCollection() {
           user_id: user.uid,
           image_url: image
             ? image
-            : "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcoll[…]?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
+            : "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
           description: collectionDescription,
         })
         .then(() => {

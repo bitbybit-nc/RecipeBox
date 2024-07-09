@@ -6,7 +6,10 @@ function Layout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ title: "My Collections" }} />
-      <Stack.Screen name="add-collection" options={{}} />
+      <Stack.Screen
+        name="add-collection"
+        options={{ title: "Add Collection" }}
+      />
       <Stack.Screen
         name="edit-collection/[id]"
         options={{ title: "Edit Collection" }}
@@ -16,7 +19,7 @@ function Layout() {
         options={{ title: "Edit Recipe" }}
       />
       <Stack.Screen name="recipe" options={{ headerShown: false }} />
-      <Stack.Screen name="collection/[id]" options={{}} />
+      <Stack.Screen name="collection/[id]" options={{ title: "" }} />
     </Stack>
   );
 }

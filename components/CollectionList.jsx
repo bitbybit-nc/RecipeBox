@@ -9,6 +9,9 @@ export function CollectionList({ collection, id, user }) {
   const [recipeImage, setRecipeImage] = useState([]);
   const isFocused = useIsFocused();
 
+  console.log(collection.recipes_list, '<<<recipeList')
+
+
   function handleCollectionPress() {
     router.push({ pathname: `/collection/${id}`, params: { user: user } });
   }
@@ -26,9 +29,7 @@ export function CollectionList({ collection, id, user }) {
           })
         );
 
-        setRecipeInfo(collectionInfo);
-
-        const sortedRecipes = recipeInfo.sort((a, b) => {
+        const sortedRecipes = collectionInfo.sort((a, b) => {
           if (a.timestamp.seconds === b.timestamp.seconds) {
             return b.timestamp.nanoseconds - a.timestamp.nanoseconds;
           }
@@ -38,12 +39,16 @@ export function CollectionList({ collection, id, user }) {
           return recipe.recipe_img_url;
         });
 
+        setRecipeInfo(sortedRecipes)
         setRecipeImage(recipeUrlArr);
       } catch (err) {
         console.log(err);
       }
     }
-    fetchRecipeImage();
+    if (collection.recipes_list.length > 0 && isFocused) {
+      fetchRecipeImage();
+    }
+
   }, [collection.recipes_list, isFocused]);
 
   return (

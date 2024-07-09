@@ -83,10 +83,10 @@ export default function HomeScreen() {
   useEffect(() => {
     setLoading(true);
     setEmpty(false);
+
     firestore()
       .collection("Collections")
-      .get()
-      .then((querySnapshot) => {
+      .onSnapshot((querySnapshot) => {
         const collectionsList = [];
         querySnapshot.forEach((documentSnapshot) => {
           collectionsList.push({
@@ -105,8 +105,10 @@ export default function HomeScreen() {
 
         setCollections(filteredList);
         setLoading(false);
-      });
+      })
+    
   }, [updatedCollection, collectionAdded]);
+
 
   if (loading) {
     return (

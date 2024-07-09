@@ -14,8 +14,10 @@ import firestore, { Filter } from "@react-native-firebase/firestore";
 import { RecipeSmallCard } from "../../../components/RecipeSmallCard";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { firebase } from "@react-native-firebase/auth";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function SearchRecipesPage() {
+  const isFocused = useIsFocused();
   const user = firebase.auth().currentUser;
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
@@ -99,7 +101,7 @@ export default function SearchRecipesPage() {
         setIsLoading(false);
       });
     }
-  }, [navigation, dietaries, matchAndDietaries]);
+  }, [navigation, dietaries, matchAndDietaries, isFocused]);
 
   const resetFetch = () => {
     if (dietaries) {

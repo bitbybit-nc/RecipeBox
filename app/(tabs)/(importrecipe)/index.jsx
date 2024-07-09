@@ -21,6 +21,7 @@ import { firebase } from "@react-native-firebase/auth";
 import storage from "@react-native-firebase/storage";
 import { Fontisto } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import { TextFromScreenshot } from "../../../components/TextFromScreenshot";
 
 export default function RecipePreview() {
   const isFocused = useIsFocused();
@@ -35,6 +36,8 @@ export default function RecipePreview() {
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFromPencil, setIsLoadingFromPencil] = useState(false);
+  const [ingredientText, setIngredientText] = useState('')
+  const [cookingMethodText, setCookingMethodText] = useState('')
 
   const [newRecipe, setNewRecipe] = useState({
     category: [],
@@ -83,8 +86,10 @@ export default function RecipePreview() {
         : [],
       recipe_img_url: image,
       cook_time: formatCookTime(cookTime),
+      ingredients: ingredientText,
+      cooking_method: cookingMethodText
     }));
-  }, [dietariesChosen, image, cookTime]);
+  }, [dietariesChosen, image, cookTime, ingredientText, cookingMethodText]);
 
   useEffect(() => {
     if (params.currentSelected) {
@@ -172,6 +177,8 @@ export default function RecipePreview() {
           uid: user._user.uid,
           timestamp: firestore.FieldValue.serverTimestamp(),
         });
+        setIngredientText('')
+        setCookingMethodText('')
         setCurrentSelectionCollection(null);
         setCookTime({ hours: 0, mins: 0 });
         setDietariesChosen([]);
@@ -441,30 +448,8 @@ export default function RecipePreview() {
             </View>
           </View>
         </View>
-        <View className="mb-3">
-          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
-            Ingredient List
-          </Text>
-          <TextInput
-            className="bg-slate-100 rounded-md p-3"
-            multiline={true}
-            placeholder="2 large sweet potatoes2 tablespoons olive oilSalt, to tastePepper, to taste1 ripe avocado1/2 cup Greek yogurt1 tablespoon lime juice2 tablespoons fresh cilantro, chopped"
-            onChangeText={(text) => handleInput("ingredients", text)}
-            value={newRecipe.ingredients}
-          />
-        </View>
-        <View className="mb-3">
-          <Text className="block text-sm font-medium leading-6 text-gray-900 mb-1">
-            Cooking instructions
-          </Text>
-          <TextInput
-            className="bg-slate-100 rounded-md p-3"
-            multiline={true}
-            placeholder="1. Preheat oven to 425°F (220°C). 2. Cut the cauliflower into florets.3. Toss the cauliflower with olive oil, turmeric, cumin, salt, and pepper.4. Spread the cauliflower on a baking sheet.5. Roast in the preheated oven for 20-25 minutes, or until tender and browned.6. Remove from the oven and squeeze lemon juice over the top before serving."
-            onChangeText={(text) => handleInput("cooking_method", text)}
-            value={newRecipe.cooking_method}
-          />
-        </View>
+        <TextFromScreenshot setText={setIngredientText} fieldName={'Ingredients'}/>
+        <TextFromScreenshot setText={setCookingMethodText} fieldName={'Cooking'}/>
         <Pressable
           className="mt-5 p-3 bg-orange-400 w-full rounded-md"
           onPress={handleRecipeSubmit}

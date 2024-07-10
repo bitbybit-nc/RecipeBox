@@ -9,7 +9,6 @@ export function CollectionList({ collection, id, user }) {
   const [recipeImage, setRecipeImage] = useState([]);
   const isFocused = useIsFocused();
 
-
   function handleCollectionPress() {
     router.push({ pathname: `/collection/${id}`, params: { user: user } });
   }
@@ -37,7 +36,7 @@ export function CollectionList({ collection, id, user }) {
           return recipe.recipe_img_url;
         });
 
-        setRecipeInfo(sortedRecipes)
+        setRecipeInfo(sortedRecipes);
         setRecipeImage(recipeUrlArr);
       } catch (err) {
         console.log(err);
@@ -46,17 +45,37 @@ export function CollectionList({ collection, id, user }) {
     if (collection.recipes_list.length > 0 && isFocused) {
       fetchRecipeImage();
     }
-
   }, [collection.recipes_list, isFocused]);
+
+  const fillArray = (array) => {
+    const copy = [...array];
+    const toFill = 4 - recipeImage.length;
+    for (let i = 0; i < toFill; i++) {
+      copy.push("blank");
+    }
+    return copy.map((singleRecipe, index) => {
+      if (singleRecipe !== "blank") {
+        return (
+          <Image
+            className="w-[76px] h-[76px]"
+            key={index}
+            source={{ uri: singleRecipe }}
+          />
+        );
+      } else {
+        return <View key={index} className="w-[76] h-[76] bg-slate-200"></View>;
+      }
+    });
+  };
 
   return (
     <View>
       <Pressable
-        className="pt-2 pl-1.5 border border-orange-200 rounded-xl relative"
+        className="pt-2 pl-1.5 relative"
         onPress={handleCollectionPress}
       >
         <View className="h-[160px] w-[160px] mb-1 bg-white rounded gap-1">
-          <View className="flex flex-row flex-wrap gap-0.5">
+          <View className="flex flex-row flex-wrap gap-0.5 rounded-xl overflow-hidden">
             {recipeImage.length === 0 && !collection.image_url ? (
               <Image
                 className="w-[155px] h-[155px]"
@@ -71,24 +90,21 @@ export function CollectionList({ collection, id, user }) {
                   uri: collection.image_url,
                 }}
               />
+            ) : recipeImage.length === 1 ? (
+              <Image
+                className="w-[155px] h-[155px]"
+                source={{ uri: singleRecipe }}
+              />
             ) : (
-              recipeImage.slice(0, 4).map((singleRecipe, index) => {
-                return (
-                  <Image
-                    className="w-[76px] h-[76px]"
-                    key={index}
-                    source={{ uri: singleRecipe }}
-                  />
-                );
-              })
+              fillArray(recipeImage)
             )}
           </View>
         </View>
 
         <View>
-          {collection.name.length > 20 ? (
+          {collection.name.length > 40 ? (
             <Text className="text-sm font-semibold mb-1">
-              {collection.name.slice(0, 19) + "..."}
+              {collection.name.slice(0, 40) + "..."}
             </Text>
           ) : (
             <Text className="text-sm font-semibold  mb-1">

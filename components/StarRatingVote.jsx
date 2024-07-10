@@ -8,14 +8,13 @@ export function StarRating({ rating, handleRatingChange, userHasVoted }) {
   for (let i = 1; i <= 5; i++) {
     starIcons.push(
       <Pressable
-        className="mr-0.5"
         key={i}
-        onPress={() => handleRatingChange && handleRatingChange(i)}
-        disabled={userHasVoted || !handleRatingChange}
+        onPress={() => handleRatingChange(i)}
+        disabled={userHasVoted}
       >
         <FontAwesome
           name={i <= ceilRating ? "star" : "star-o"}
-          size={18}
+          size={24}
           color={userHasVoted ? "#FFA500" : "#708090"}
         />
       </Pressable>

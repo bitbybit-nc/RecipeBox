@@ -41,13 +41,15 @@ export default function RecipePreview() {
   const [cookingMethodText, setCookingMethodText] = useState("");
 
   const [newRecipe, setNewRecipe] = useState({
-    category: [],
+    category: "",
     cook_time: "",
     cooking_method: "",
     dietary_needs: [],
     ingredients: "",
     is_public: true,
     rating: 0,
+    rating_count: 0,
+    rating_sum: 0,
     recipe_img_url: "",
     saved_count: 0,
     source_url: "",
@@ -195,7 +197,7 @@ export default function RecipePreview() {
           });
 
         setNewRecipe({
-          category: [],
+          category: "",
           cook_time: "",
           cooking_method: "",
           dietary_needs: [],

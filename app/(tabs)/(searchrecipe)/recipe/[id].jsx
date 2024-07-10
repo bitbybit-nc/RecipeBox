@@ -22,21 +22,22 @@ function SingleRecipe() {
 
   useEffect(() => {
     navigation.setOptions({
-      title: "",
-      headerRight: () => {
-        return user === recipeUser ? (
-          <Button title="Edit" onPress={handleEdit} />
-        ) : null;
-      },
-      headerLeft: () => (
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row justify-center items-center"
-        >
-          <Ionicons name="chevron-back" size={24} color="black" />
-          <Text>Search</Text>
-        </Pressable>
-      ),
+      // title: "",
+      // headerRight: () => {
+      //   return user === recipeUser ? (
+      //     <Button title="Edit" onPress={handleEdit} />
+      //   ) : null;
+      // },
+      // headerLeft: () => (
+      //   <Pressable
+      //     onPress={() => router.back()}
+      //     className="flex-row justify-center items-center"
+      //   >
+      //     <Ionicons name="chevron-back" size={24} color="black" />
+      //     <Text>Search</Text>
+      //   </Pressable>
+      // ),
+      headerShown: false,
       unmountOnBlur: true,
     });
   }, []);

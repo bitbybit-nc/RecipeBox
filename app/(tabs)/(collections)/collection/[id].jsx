@@ -27,7 +27,9 @@ function SingleCollection() {
     navigation.setOptions({
       title: "",
       headerRight: () => {
-        return <Button title="Edit" onPress={routeToEdit} />;
+        return collectionName !== "My Recipes" ? (
+          <Button title="Edit" onPress={routeToEdit} />
+        ) : null;
       },
       unmountOnBlur: true,
     });

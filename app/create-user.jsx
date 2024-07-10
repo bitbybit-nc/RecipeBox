@@ -69,7 +69,7 @@ export default function SigninPage() {
         description: null,
         image_url: 'https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093',
         is_public: true,
-        name: 'All Recipes',
+        name: 'My Recipes',
         recipes_list: [],
         user_id: createUser.user.uid,
       })

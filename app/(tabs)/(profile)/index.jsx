@@ -60,13 +60,13 @@ export default function MyProfilePage() {
 
     fetchRecipes();
 
-    // const reloadUser = async () => {
-    //   await firebase.auth().currentUser.reload();
-    //   const updatedUser = firebase.auth().currentUser;
-    //   setDisplayNameTest(updatedUser.displayName);
-    // };
+    const reloadUser = async () => {
+      await firebase.auth().currentUser.reload();
+      const updatedUser = firebase.auth().currentUser;
+      setDisplayNameTest(updatedUser.displayName);
+    };
 
-    // reloadUser();
+    reloadUser();
   }, []);
 
   return (
@@ -86,8 +86,14 @@ export default function MyProfilePage() {
           <View className="ml-5">
             <View>
               <Text className="text-leftleading-4 text-sm font-semibold">
-                Name:
-                <Text className="font-normal"> {displayNameTest}</Text>
+                {displayNameTest}
+                </Text>
+                <Text className="text-sm w-60 text-justify">
+            Vegetarian guru, looking to connect with the entire world, through
+            our one unifying language, FOOD!
+          </Text>
+          </View>
+                {/* <Text className="font-normal"> {displayNameTest}</Text>
               </Text>
             </View>
 
@@ -103,12 +109,12 @@ export default function MyProfilePage() {
                 Email:
                 <Text className="font-normal"> {user.email}</Text>
               </Text>
-            </View>
+            </View> */}
           </View>
         </View>
 
         <View className="mb-4">
-          <Text className="text-sm font-semibold">My dietary preferences</Text>
+          <Text className="text-sm font-semibold">Dietary Preferences</Text>
           <View className="flex flex-row">
             <View className="mb-2 bg-white rounded-full p-1 mx-0.5 items-center">
               <Image
@@ -131,13 +137,13 @@ export default function MyProfilePage() {
           </View>
         </View>
 
-        <View className="rounded-lg mb-6">
+        {/* <View className="rounded-lg mb-6">
           <Text className="text-sm font-semibold">About me</Text>
           <Text className="text-sm">
             Vegetarian guru, looking to connect with the entire world, through
             our one unifying language, FOOD!
           </Text>
-        </View>
+        </View> */}
       </View>
 
       <View>

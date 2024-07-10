@@ -23,7 +23,6 @@ function AddCollection() {
   const [collectionName, setCollectionName] = useState("");
   const [image, setImage] = useState(null);
   const [collectionVisibility, setCollectionVisibility] = useState(false);
-  const [collectionDescription, setCollectionDescription] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFromPencil, setIsLoadingFromPencil] = useState(false);
@@ -42,7 +41,6 @@ function AddCollection() {
           image_url: image
             ? image
             : "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093",
-          description: collectionDescription,
         })
         .then(() => {
           router.navigate({
@@ -51,7 +49,6 @@ function AddCollection() {
               collectionAdded: JSON.stringify({
                 collectionName: collectionName,
                 image: image,
-                collectionDescription: collectionDescription,
                 collectionVisibility,
               }),
             },
@@ -60,7 +57,6 @@ function AddCollection() {
           setCollectionName("");
           setImage(null);
           setCollectionVisibility(false);
-          setCollectionDescription("");
         });
     }
   };
@@ -153,7 +149,7 @@ function AddCollection() {
           <ActivityIndicator size="large" color="#FB923C" />
         </View>
       ) : (
-        <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-7">
+        <View className="w-full h-40 rounded-lg bg-slate-100 items-center justify-center mb-5">
           <Button title="Add Recipe Image" onPress={pickImage} />
         </View>
       )}
@@ -165,21 +161,6 @@ function AddCollection() {
           value={collectionName}
           onChangeText={setCollectionName}
         />
-
-        <View className="mb-4">
-          <TextInput
-            className="bg-slate-100 h-32 rounded-md p-3"
-            placeholder="Collection Description"
-            multiline
-            rows={4}
-            numberOfLines={4}
-            maxLength={50}
-            autoComplete="off"
-            textAlignVertical="top"
-            value={collectionDescription}
-            onChangeText={setCollectionDescription}
-          />
-        </View>
       </View>
 
       <View className="flex-row items-center gap-x-3 mt-4 mb-4">

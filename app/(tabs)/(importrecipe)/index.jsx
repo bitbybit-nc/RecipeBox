@@ -109,7 +109,6 @@ export default function RecipePreview() {
   }, [dietariesChosen, image, cookTime, ingredientText, cookingMethodText]);
 
   useEffect(() => {
-    console.log(params.currentSelected, "<<<<<< PARAMS");
     if (
       params.currentSelected &&
       params.currentSelected !== undefined &&
@@ -124,7 +123,7 @@ export default function RecipePreview() {
         });
     }
   }, [params.currentSelected]);
-  console.log(currentSelectionCollection);
+
   const formatCookTime = (time) => {
     const hoursInMins = Number(time.hours) * 60;
     return Number(time.mins) + hoursInMins;
@@ -180,7 +179,6 @@ export default function RecipePreview() {
           params.currentSelected !== "undefined" &&
           params.currentSelected !== undefined
         ) {
-          console.log("HERE");
           await firestore()
             .collection("Collections")
             .doc(params.currentSelected)

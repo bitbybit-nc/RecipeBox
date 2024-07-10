@@ -1,20 +1,20 @@
 import { View, Text, Pressable, TextInput, FlatList } from "react-native";
 import auth from "@react-native-firebase/auth";
-import { Link, router, } from "expo-router";
+import { Link, router } from "expo-router";
 import { Image } from "expo-image";
 import { firebase } from "@react-native-firebase/auth";
 import { useEffect, useState } from "react";
 import firestore from "@react-native-firebase/firestore";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { RecipeSmallCard } from "../../../components/RecipeSmallCard"
+import { RecipeSmallCard } from "../../../components/RecipeSmallCard";
 
 export default function MyProfilePage() {
   const user = firebase.auth().currentUser;
   const [username, setUsername] = useState(null);
-  const [recipes, setRecipes] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [displayNameTest, setDisplayNameTest] = useState(user.displayName);
-  const [dietaryOptions, setDietaryOptions] = useState("")
+  const [dietaryOptions, setDietaryOptions] = useState("");
 
   const logoutUser = () => {
     auth()
@@ -49,7 +49,6 @@ export default function MyProfilePage() {
           });
         });
         setRecipes(recipesList);
-        console.log(recipes)
         setLoading(false);
       });
 
@@ -61,45 +60,6 @@ export default function MyProfilePage() {
         setDisplayNameTest(updatedUser.displayName);
       });
   }, [user]);
-  
-  useEffect(() => {
-    const fetchDietaryOptions = async () => {
-      const result = await firestore().collection("Dietary_needs").get();
-      const options = result.docs.map((doc) => ({
-        name: doc._data.slug,
-        displayName: doc._data.display_name,
-        imgUrl: doc._data.image_url,
-        slug: doc._data.slug,
-        id: doc.id,
-      }));
-      if (!dietariesChosen.length) {
-        setDietaryOptions(options);
-      } else {
-        const chosenIds = dietariesChosen.map((chosenItem) => chosenItem.id);
-        const filteredOptions = options.filter(
-          (item) => !item.id.includes(chosenIds)
-        );
-        setDietaryOptions(filteredOptions);
-      }
-    };
-    fetchDietaryOptions();
-  }, [isFocused]);
-
-  const addDietary = (dietary) => {
-    const index = dietaryOptions.map((item) => item.id).indexOf(dietary.id);
-    setDietariesChosen([...dietariesChosen, dietary]);
-    dietaryOptions.splice(index, 1);
-    setDietaryOptions([...dietaryOptions]);
-  };
-
-  const removeDietary = (dietary) => {
-    const dietaryToRemoveIndex = dietariesChosen
-      .map((item) => item.id)
-      .indexOf(dietary.id);
-    dietariesChosen.splice(dietaryToRemoveIndex, 1);
-    setDietariesChosen([...dietariesChosen]);
-    setDietaryOptions([dietary, ...dietaryOptions]);
-  };
 
   return (
     <View className="flex-1 p-5">
@@ -119,83 +79,31 @@ export default function MyProfilePage() {
         />
         <View className="ml-5 mt-10">
           <View className="mt-3">
-            <Text className="text-left pt-1 leading-4 font-medium">Name:
+            <Text className="text-left pt-1 leading-4 font-medium">
+              Name:
               <Text className="font-normal"> {displayNameTest}</Text>
             </Text>
           </View>
 
           <View className="mt-3">
-            <Text className="text-left pt-1 leading-4 font-medium">Username:
+            <Text className="text-left pt-1 leading-4 font-medium">
+              Username:
               <Text className="font-normal"> {username}</Text>
             </Text>
           </View>
 
           <View className="mt-3">
-            <Text className="text-left pt-1 leading-4 font-medium">Email:
+            <Text className="text-left pt-1 leading-4 font-medium">
+              Email:
               <Text className="font-normal"> {user.email}</Text>
             </Text>
           </View>
         </View>
       </View>
-      <Text className="block text-sm font-medium leading-6 text-gray-900">
-          Dietary Needs
-        </Text>
-        <View className="my-2">
-          <FlatList
-            data={dietaryOptions}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => addDietary(item)}
-                className="items-center mr-3"
-              >
-                <View
-                  key={item.slug}
-                  className="mr-1 bg-slate-100 rounded-full p-1 items-center justify-center"
-                >
-                  <Image className="w-8 h-8" source={{ uri: item.imgUrl }} />
-                </View>
-                <Text className="mt-1 text-xs">{item.displayName}</Text>
-              </Pressable>
-            )}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(dietary, index) => index}
-          />
-        </View>
-        <View className="my-2">
-          {dietariesChosen.length ? (
-            <Text className="mb-1 text-xs">Selected:</Text>
-          ) : null}
-          <FlatList
-            data={dietariesChosen}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => removeDietary(item)}
-                className="items-center mr-3"
-              >
-                <View
-                  key={item.slug}
-                  className="bg-green-300 rounded-full p-1 items-center justify-center"
-                >
-                  <Image className="w-8 h-8" source={{ uri: item.imgUrl }} />
-                </View>
-                <Text className="mt-1 text-xs">{item.displayName}</Text>
-              </Pressable>
-            )}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(dietary, index) => index}
-          />
-        </View>
-      <TextInput
-          className="bg-slate-100 rounded-md p-3 mb-3"
-          placeholder="Enter bio here"
-          value=""
-        />
 
       <View>
         <Text className="text-center font-medium mb-4 text-lg">My Recipes</Text>
-        <View >
+        <View>
           {!recipes.length ? (
             <Text className="text-center mt-20">No Recipes Found</Text>
           ) : (

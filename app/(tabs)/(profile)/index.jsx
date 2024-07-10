@@ -47,8 +47,10 @@ export default function MyProfilePage() {
       const recipesList = [];
       querySnapshot.forEach((documentSnapshot) => {
         recipesList.push({
-          data: documentSnapshot.data(),
-          id: documentSnapshot.id,
+          item: {
+            data: documentSnapshot.data(),
+            id: documentSnapshot.id,
+          },
         });
       });
 
@@ -65,77 +67,77 @@ export default function MyProfilePage() {
     // };
 
     // reloadUser();
-  }, [user.uid]);
-
-  console.log(user)
+  }, []);
 
   return (
-    <ScrollView className="flex-1 py-16 px-4 bg-white">
-      <View className="flex-row items-center justify-between mb-4 ">
-        <Text className="font-medium text-lg font-semibold">{username}</Text>
-        <View className="w-8 h-8 rounded-full bg-orange-400 justify-center items-center">
-          <Link href={{ pathname: "/profile-edit", params: { username } }}>
-            <Icon name="pencil" style={{ color: "white" }} />
-          </Link>
-        </View>
-      </View>
-
-      <View className="flex flex-row mt-2 mb-6 items-center">
-        <Image source={user.photoURL} className="w-24 h-24 rounded-full" />
-        <View className="ml-5">
-          <View>
-            <Text className="text-leftleading-4 text-sm font-semibold">
-              Name:
-              <Text className="font-normal"> {displayNameTest}</Text>
-            </Text>
-          </View>
-
-          <View className="mt-3">
-            <Text className="text-leftleading-4 text-sm font-semibold">
-              Username:
-              <Text className="font-normal"> {username}</Text>
-            </Text>
-          </View>
-
-          <View className="mt-3">
-            <Text className="text-left leading-4 text-sm font-semibold">
-              Email:
-              <Text className="font-normal"> {user.email}</Text>
-            </Text>
+    <ScrollView className="flex-1 pt-16 px-2 bg-white">
+      <View className="px-4">
+        <View className="flex-row items-center justify-between mb-4 ">
+          <Text className="text-lg font-semibold">{username}</Text>
+          <View className="w-8 h-8 rounded-full bg-orange-400 justify-center items-center">
+            <Link href={{ pathname: "/profile-edit", params: { username } }}>
+              <Icon name="pencil" style={{ color: "white" }} />
+            </Link>
           </View>
         </View>
-      </View>
 
-      <View className="mb-4">
-        <Text className="text-sm font-semibold">My dietary preferences</Text>
-        <View className="flex flex-row">
-          <View className="mb-2 bg-white rounded-full p-1 mx-0.5 items-center">
-            <Image
-              className="w-12 h-12"
-              source={{
-                uri: "https://img.icons8.com/?size=100&id=ty3PIygUOqhK&format=png&color=000000",
-              }}
-            />
-            <Text className="text-[10px]">Dairy Free</Text>
-          </View>
-          <View className="mb-2 bg-white rounded-full p-1 mx-0.5 items-center">
-            <Image
-              className="w-12 h-12"
-              source={{
-                uri: "https://img.icons8.com/?size=100&id=13302&format=png&color=0000000",
-              }}
-            />
-            <Text className="text-[10px]">Gluten Free</Text>
+        <View className="flex flex-row mt-2 mb-6 items-center">
+          <Image source={user.photoURL} className="w-24 h-24 rounded-full" />
+          <View className="ml-5">
+            <View>
+              <Text className="text-leftleading-4 text-sm font-semibold">
+                Name:
+                <Text className="font-normal"> {displayNameTest}</Text>
+              </Text>
+            </View>
+
+            <View className="mt-3">
+              <Text className="text-leftleading-4 text-sm font-semibold">
+                Username:
+                <Text className="font-normal"> {username}</Text>
+              </Text>
+            </View>
+
+            <View className="mt-3">
+              <Text className="text-left leading-4 text-sm font-semibold">
+                Email:
+                <Text className="font-normal"> {user.email}</Text>
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View className="rounded-lg mb-6">
-        <Text className="text-sm font-semibold">About me</Text>
-        <Text className="text-sm">
-          Vegetarian guru, looking to connect with the entire world, through our
-          one unifying language, FOOD!
-        </Text>
+        <View className="mb-4">
+          <Text className="text-sm font-semibold">My dietary preferences</Text>
+          <View className="flex flex-row">
+            <View className="mb-2 bg-white rounded-full p-1 mx-0.5 items-center">
+              <Image
+                className="w-12 h-12"
+                source={{
+                  uri: "https://img.icons8.com/?size=100&id=ty3PIygUOqhK&format=png&color=000000",
+                }}
+              />
+              <Text className="text-[10px]">Dairy Free</Text>
+            </View>
+            <View className="mb-2 bg-white rounded-full p-1 mx-0.5 items-center">
+              <Image
+                className="w-12 h-12"
+                source={{
+                  uri: "https://img.icons8.com/?size=100&id=13302&format=png&color=0000000",
+                }}
+              />
+              <Text className="text-[10px]">Gluten Free</Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="rounded-lg mb-6">
+          <Text className="text-sm font-semibold">About me</Text>
+          <Text className="text-sm">
+            Vegetarian guru, looking to connect with the entire world, through
+            our one unifying language, FOOD!
+          </Text>
+        </View>
       </View>
 
       <View>
@@ -144,32 +146,18 @@ export default function MyProfilePage() {
           {!recipes.length ? (
             <Text className="text-center mt-20">No Recipes Found</Text>
           ) : (
-            // <View className="flex-row flex-wrap justify-between">
-            //   {recipes.map((recipe, index) => (
-            //     <RecipeSmallCard
-            //       key={index}
-            //       recipe={recipe}
-            //       user={user.uid}
-            //       location={"(profile)"}
-            //     />
-            //   ))}
-            // </View>
-
-            <FlatList
-              data={recipes}
-              renderItem={(recipe, index) => (
-                <RecipeSmallCard
-                  key={index}
-                  recipe={recipe}
-                  user={user.uid}
-                  location={"(profile)"}
-                />
-              )}
-              numColumns={2}
-              showsVerticalScrollIndicator={false}
-              horizontal={false}
-              keyExtractor={(recipe, index) => index}
-            />
+            <View className="flex-row flex-wrap justify-between">
+              {recipes.map((recipe, index) => {
+                return (
+                  <RecipeSmallCard
+                    key={index}
+                    recipe={recipe}
+                    user={user.uid}
+                    location={"(profile)"}
+                  />
+                );
+              })}
+            </View>
           )}
         </View>
       </View>

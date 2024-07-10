@@ -43,6 +43,8 @@ export default function SearchRecipesPage() {
 
     if (ratingOrder === "true") {
       finalQuery = finalQuery.orderBy("rating", "desc");
+    } else {
+      finalQuery = finalQuery.orderBy("timestamp", "desc");
     }
 
     if (dietariesJSON && dietariesJSON.chosen.length > 0) {

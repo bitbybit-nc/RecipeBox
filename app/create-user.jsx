@@ -23,6 +23,7 @@ export default function SigninPage() {
   const [errorToggle, setErrorToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [photoDB, setPhotoDB] = useState(null)
 
   const createNewUser = async () => {
     try {
@@ -55,13 +56,25 @@ export default function SigninPage() {
           displayName: name,
           photoURL: url,
         });
+        setPhotoDB(url)
       }
 
       await firestore().collection("Users").add({
         uid: createUser.user.uid,
         username: username,
+        photoURL: photoDB,
       });
 
+      await firestore().collection('Collections').add({
+        description: null,
+        image_url: 'https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Collections%2Fcollections-placeholder-1.png?alt=media&token=f3ce7b92-e7e9-4328-90ff-a59c4e0c8093',
+        is_public: true,
+        name: 'All Recipes',
+        recipes_list: [],
+        user_id: createUser.user.uid,
+      })
+
+    //need to add collection/document titled 'All Recipes' in 'Collections' based on a user's new ID:  
       console.log("REGISTERED");
 
       setIsLoading(false);

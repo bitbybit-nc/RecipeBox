@@ -48,6 +48,8 @@ export default function RecipePreview() {
     ingredients: "",
     is_public: true,
     rating: 0,
+    rating_count: 0,
+    rating_sum: 0,
     recipe_img_url: "",
     saved_count: 0,
     source_url: "",

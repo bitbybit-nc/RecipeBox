@@ -10,10 +10,13 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
+
 import { Feather } from "@expo/vector-icons";
 import { Ionicons, Octicons } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { StarRating } from "../components/StarRating";
+
 
 export function RecipeCard({
   id,
@@ -23,71 +26,93 @@ export function RecipeCard({
   location,
   updatedRecipe,
 }) {
-  const [currentRecipe, setCurrentRecipe] = useState({});
-  const [currentCollections, setCurrentCollections] = useState([]);
-  const [recipeUser, setRecipeUser] = useState();
-  const [dietaryImages, setDietaryImages] = useState({});
-  const [dietaryImagesText, setDietaryImagesText] = useState([]);
+
+    const [currentRecipe, setCurrentRecipe] = useState({});
+    const [currentCollections, setCurrentCollections] = useState([]);
+    const [recipeUser, setRecipeUser] = useState();
+    const [dietaryImages, setDietaryImages] = useState({});
+    const [dietaryImagesText, setDietaryImagesText] = useState([]);
+    const [userHasVoted, setUserHasVoted] = useState(false);
+    const [userRating, setUserRating] = useState(0);
+
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        try {
-          const dietaryCategory = await firestore()
-            .collection("Dietary_needs")
-            .get();
-          const images = {};
-          const text = {};
+        const fetchData = async () => {
+            if (id) {
+                try {
+                    const dietaryCategory = await firestore()
+                        .collection("Dietary_needs")
+                        .get();
+                    const images = {};
+                    const text = {};
 
-          dietaryCategory.forEach((doc) => {
-            const data = doc.data();
-            images[data.slug] = data.image_url;
-            text[data.slug] = data.display_name;
-          });
+                    dietaryCategory.forEach((doc) => {
+                        const data = doc.data();
+                        images[data.slug] = data.image_url;
+                        text[data.slug] = data.display_name;
+                    });
 
-          setDietaryImages(images);
-          setDietaryImagesText(text);
+                    setDietaryImages(images);
+                    setDietaryImagesText(text);
 
-          const recipeDoc = await firestore()
-            .collection("Recipes")
-            .doc(id)
-            .get();
-          if (recipeDoc.exists) {
-            const recipeData = recipeDoc.data();
-            setCurrentRecipe(recipeData);
+                    const recipeDoc = await firestore()
+                        .collection("Recipes")
+                        .doc(id)
+                        .get();
+                    if (recipeDoc.exists) {
+                        const recipeData = recipeDoc.data();
+                        setCurrentRecipe(recipeData);
 
-            const userDoc = await firestore()
-              .collection("Users")
-              .where("uid", "==", recipeData.uid)
-              .get();
-            const userForRecipe = [];
-            userDoc.forEach((doc) => {
-              const data = doc.data();
-              userForRecipe.push(data);
-            });
-            setRecipeUser(userForRecipe[0]);
-          }
+                        const { rating_count, rating_sum } = recipeData;
 
-          const collectionsDoc = await firestore()
-            .collection("Collections")
-            .where("recipes_list", "array-contains", id)
-            .where("user_id", "==", user)
-            .get();
+                        setUserRating(
+                            recipeData.rating ? rating_sum / rating_count : 0
+                        );
 
-          const collectionsForUser = [];
-          collectionsDoc.forEach((doc) => {
-            const data = doc.data();
-            collectionsForUser.push({ data: data, id: doc.id });
-          });
-          setCurrentCollections(collectionsForUser);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    };
+                        const userDoc = await firestore()
+                            .collection("Users")
+                            .where("uid", "==", recipeData.uid)
+                            .get();
+                        const userForRecipe = [];
+                        userDoc.forEach((doc) => {
+                            const data = doc.data();
+                            userForRecipe.push(data);
+                        });
+                        setRecipeUser(userForRecipe[0]);
+                    }
 
-    fetchData();
-  }, [id, collectionAdded, navigation, updatedRecipe]);
+                    const collectionsDoc = await firestore()
+                        .collection("Collections")
+                        .where("recipes_list", "array-contains", id)
+                        .where("user_id", "==", user)
+                        .get();
+
+                    const collectionsForUser = [];
+                    collectionsDoc.forEach((doc) => {
+                        const data = doc.data();
+                        collectionsForUser.push({ data: data, id: doc.id });
+                    });
+                    setCurrentCollections(collectionsForUser);
+
+                    const userVoteDoc = await firestore()
+                        .collection("Users")
+                        .doc(user)
+                        .get();
+
+                    if (userVoteDoc.exists) {
+                        const userVoteData = userVoteDoc.data();
+                        if (userVoteData.voted_recipes.includes(id)) {
+                            setUserHasVoted(true);
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        };
+
+        fetchData();
+    }, [id, collectionAdded, navigation, updatedRecipe]);
 
   const formatCookTime = (mins) => {
     if (mins > 60) {
@@ -104,6 +129,9 @@ export function RecipeCard({
   const handleBack = () => {
     router.back();
   };
+  
+     
+
   return (
     <ScrollView className="bg-white relative">
       <ImageBackground
@@ -329,18 +357,3 @@ export function RecipeCard({
   );
 }
 
-const styles = StyleSheet.create({
-  midLogo: {
-    width: 300,
-    height: 100,
-  },
-  tinyLogo: {
-    width: 50,
-    height: 50,
-  },
-  profilePic: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-  },
-});

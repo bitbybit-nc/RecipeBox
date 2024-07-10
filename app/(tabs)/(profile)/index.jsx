@@ -59,7 +59,7 @@ export default function MyProfilePage() {
         const updatedUser = firebase.auth().currentUser;
         setDisplayNameTest(updatedUser.displayName);
       });
-  }, [user]);
+  }, [user, recipes]);
 
   return (
     <View className="flex-1 p-5">
@@ -113,7 +113,7 @@ export default function MyProfilePage() {
                 <RecipeSmallCard
                   key={index}
                   recipe={recipe}
-                  user={user}
+                  user={user.uid}
                   location={"(profile)"}
                 />
               )}

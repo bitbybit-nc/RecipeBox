@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
+import { StarRating } from "../components/StarRating";
 
 export function RecipeCard({
     id,
@@ -25,6 +26,8 @@ export function RecipeCard({
     const [recipeUser, setRecipeUser] = useState();
     const [dietaryImages, setDietaryImages] = useState({});
     const [dietaryImagesText, setDietaryImagesText] = useState([]);
+    const [userHasVoted, setUserHasVoted] = useState(false);
+    const [userRating, setUserRating] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,6 +56,12 @@ export function RecipeCard({
                         const recipeData = recipeDoc.data();
                         setCurrentRecipe(recipeData);
 
+                        const { rating_count, rating_sum } = recipeData;
+
+                        setUserRating(
+                            recipeData.rating ? rating_sum / rating_count : 0
+                        );
+
                         const userDoc = await firestore()
                             .collection("Users")
                             .where("uid", "==", recipeData.uid)
@@ -78,8 +87,17 @@ export function RecipeCard({
                     });
                     setCurrentCollections(collectionsForUser);
 
+                    const userVoteDoc = await firestore()
+                        .collection("Users")
+                        .doc(user)
+                        .get();
 
-
+                    if (userVoteDoc.exists) {
+                        const userVoteData = userVoteDoc.data();
+                        if (userVoteData.voted_recipes.includes(id)) {
+                            setUserHasVoted(true);
+                        }
+                    }
                 } catch (err) {
                     console.error(err);
                 }
@@ -101,6 +119,46 @@ export function RecipeCard({
         }
     };
 
+    const handleRatingChange = async (newRating) => {
+        try {
+            await firestore()
+                .collection("Recipes")
+                .doc(id)
+                .update({
+                    rating_count: firestore.FieldValue.increment(1),
+                    rating_sum: firestore.FieldValue.increment(newRating),
+                });
+
+            const updatedRecipeDoc = await firestore()
+                .collection("Recipes")
+                .doc(id)
+                .get();
+
+            if (updatedRecipeDoc.exists) {
+                const updatedRecipeData = updatedRecipeDoc.data();
+                setCurrentRecipe(updatedRecipeData);
+
+                const newRatingSum = updatedRecipeData.rating_sum;
+                const newRatingCount = updatedRecipeData.rating_count;
+                const newAverageRating = Math.ceil(
+                    newRatingSum / newRatingCount
+                );
+
+                if (newAverageRating > 5) {
+                    newAverageRating = 5;
+                }
+                setUserRating(newAverageRating);
+                setUserHasVoted(true);
+
+                await firestore().collection("Recipes").doc(id).update({
+                    rating: newAverageRating,
+                });
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     return (
         <ScrollView>
             <View className='flex-1 mx-2 px-3 py-3'>
@@ -112,6 +170,13 @@ export function RecipeCard({
                 <Text className='my-2 font-medium text-lg'>
                     {currentRecipe.title}
                 </Text>
+                <View className='mb-4'>
+                    <StarRating
+                        rating={userRating}
+                        handleRatingChange={handleRatingChange}
+                        userHasVoted={userHasVoted}
+                    />
+                </View>
 
                 <View className='flex-row mb-3 '>
                     {currentRecipe.dietary_needs &&
@@ -191,9 +256,7 @@ export function RecipeCard({
                                             size={24}
                                             color='black'
                                         />
-                                        <Text>
-                                            {currentRecipe.saved_count}
-                                        </Text>
+                                        <Text>{currentRecipe.saved_count}</Text>
                                         <Text>Saved</Text>
                                     </View>
                                 )}

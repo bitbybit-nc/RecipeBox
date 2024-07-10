@@ -260,9 +260,7 @@ export function RecipeCard({
               >
                 <Icon name="pencil" size={18} style={{ color: "white" }} />
               </Pressable>
-            ) : (
-              <Text>NOT</Text>
-            )}
+            ) : null}
           </View>
         </View>
 

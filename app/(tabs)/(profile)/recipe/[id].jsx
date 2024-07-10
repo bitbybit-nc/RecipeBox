@@ -6,8 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { RecipeCard } from "../../../../components/RecipeCard";
 
 function SingleRecipe() {
-  const { id, user, recipeUser, collectionAdded, updatedRecipe } =
-    useLocalSearchParams();
+  const { id, user, collectionAdded, updatedRecipe } = useLocalSearchParams();
   const navigation = useNavigation();
   const location = "(profile)";
 
@@ -20,21 +19,6 @@ function SingleRecipe() {
 
   useEffect(() => {
     navigation.setOptions({
-      title: "",
-      headerRight: () => {
-        return user === recipeUser ? (
-          <Button title="Edit" onPress={handleEdit} />
-        ) : null;
-      },
-      headerLeft: () => (
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row justify-center items-center"
-        >
-          <Ionicons name="chevron-back" size={24} color="black" />
-          <Text>Back</Text>
-        </Pressable>
-      ),
       unmountOnBlur: true,
     });
   }, []);

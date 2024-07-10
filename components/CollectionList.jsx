@@ -48,7 +48,7 @@ export function CollectionList({ collection, id, user }) {
   }, [collection.recipes_list, isFocused]);
 
   const fillArray = (array) => {
-    const copy = [...array];
+    const copy = [...array].slice(0, 4);
     const toFill = 4 - recipeImage.length;
     for (let i = 0; i < toFill; i++) {
       copy.push("blank");

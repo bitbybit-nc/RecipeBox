@@ -130,6 +130,10 @@ export function RecipeCard({
                 const newAverageRating = Math.ceil(
                     newRatingSum / newRatingCount
                 );
+
+                if (newAverageRating > 5) {
+                    newAverageRating = 5;
+                }
                 setUserRating(newAverageRating);
 
                 await firestore().collection("Recipes").doc(id).update({

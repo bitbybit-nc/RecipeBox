@@ -312,7 +312,29 @@ export function RecipeCard({
             </View>
           </View>
 
-          <Text className="font-medium text-lg">{currentRecipe.title}</Text>
+          <View className="flex-row justify-between items-start">
+            <Text
+              className={`font-medium text-lg ${
+                currentRecipe.trending ? "w-[80%]" : null
+              }`}
+            >
+              {currentRecipe.title}
+            </Text>
+            <View className="flex-row ml-[-10] items-center mt-2 w-[22%]">
+              {currentRecipe.trending ? (
+                <Image
+                  className="w-6 h-6"
+                  source={{
+                    uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Recipes%2Ftrending-icon1.png?alt=media&token=7f922d7a-5e37-4d6b-946f-47b0675d88ba",
+                  }}
+                />
+              ) : null}
+
+              {currentRecipe.trending ? (
+                <Text className="text-xs text-slate-400">Trending</Text>
+              ) : null}
+            </View>
+          </View>
 
           <View className="mb-4">
             <StarRating
@@ -373,6 +395,7 @@ export function RecipeCard({
               </View>
             </View>
           </View>
+
           <View className="border-b-2 border-slate-100 h-5 mr-2"></View>
           <View className="w-full mt-3">
             <View className="flex-row items-center">

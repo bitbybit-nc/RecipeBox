@@ -15,6 +15,8 @@ import { RecipeSmallCard } from "../../../components/RecipeSmallCard";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { firebase } from "@react-native-firebase/auth";
 import { useIsFocused } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SearchRecipesPage() {
   const isFocused = useIsFocused();
@@ -125,9 +127,9 @@ export default function SearchRecipesPage() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="m-4 mt-16">
-        <View className="pt-7 ml-4">
-          <View className="px-3 py-5 items-center bg-slate-100 rounded-full flex-row gap-x-2 border border-slate-200">
+      <View className="mx-4 mt-16 mb-2">
+        <View className="items-center mx-1">
+          <View className="px-3 w-full py-5 items-center bg-slate-100 rounded-full flex-row gap-x-2 border border-slate-200">
             <FontAwesome name="search" size={15} color="grey" />
             <TextInput
               placeholder="Search Recipes..."
@@ -139,12 +141,12 @@ export default function SearchRecipesPage() {
           </View>
         </View>
         <View className="flex-row gap-3 justify-end mt-1">
-          <View className="mt-5 p-3 bg-orange-400 self-end rounded-lg">
+          <View className="mt-2 p-3 bg-orange-400 self-end rounded-full">
             <Pressable onPress={resetFetch}>
-              <Text>Reset</Text>
+              <Feather name="refresh-ccw" size={14} color="white" />
             </Pressable>
           </View>
-          <View className="mt-5 p-3 bg-orange-400 self-end rounded-lg">
+          <View className="mt-5 p-3 bg-orange-400 self-end rounded-full">
             <Link
               href={{
                 pathname: "/filter",
@@ -155,7 +157,7 @@ export default function SearchRecipesPage() {
                 },
               }}
             >
-              <Text>Filter</Text>
+              <Ionicons name="filter" size={14} color="white" />
             </Link>
           </View>
         </View>

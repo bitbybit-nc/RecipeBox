@@ -23,7 +23,8 @@ export function RecipeSmallCard({
           querySnapshot.forEach((documentSnapshot) => {
             dietaryArray.push(documentSnapshot.data());
           });
-          setDietary(dietaryArray);
+
+          setDietary(dietaryArray.slice(0, 4));
         })
         .catch((error) => {
           console.log(error);

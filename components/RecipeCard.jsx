@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   ImageBackground,
+  Button,
 } from "react-native";
 import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
@@ -16,6 +17,7 @@ import { Ionicons, Octicons } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StarRating } from "../components/StarRating";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 export function RecipeCard({
   id,
@@ -163,6 +165,19 @@ export function RecipeCard({
     }
   };
 
+  const handleEdit = () => {
+    if (currentRecipe) {
+      router.navigate({
+        pathname: `/${location}/edit-recipe/${id}`,
+        params: {
+          ...currentRecipe,
+          recipeId: id,
+          user: user,
+        },
+      });
+    }
+  };
+
   return (
     <ScrollView className="bg-white relative">
       <ImageBackground
@@ -191,7 +206,7 @@ export function RecipeCard({
             </View>
           </Pressable>
 
-          <View className="">
+          <View className="flex-row items-center">
             <Pressable
               className="p-2 rounded-full bg-white active:bg-stone-100"
               style={{
@@ -226,6 +241,28 @@ export function RecipeCard({
                 )}
               </View>
             </Pressable>
+
+            {user === currentRecipe.uid ? (
+              <Pressable
+                style={{
+                  shadowColor: "#00000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 3,
+                  },
+                  shadowOpacity: 0.27,
+                  shadowRadius: 4.65,
+
+                  elevation: 6,
+                }}
+                onPress={handleEdit}
+                className="w-10 h-10 ml-3 rounded-full bg-orange-500 justify-center items-center"
+              >
+                <Icon name="pencil" size={18} style={{ color: "white" }} />
+              </Pressable>
+            ) : (
+              <Text>NOT</Text>
+            )}
           </View>
         </View>
 

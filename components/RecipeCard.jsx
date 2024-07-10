@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
-import { StarRatingVote } from "../components/StarRatingVote";
+import { StarRating } from "../components/StarRating";
 
 export function RecipeCard({
     id,
@@ -26,6 +26,7 @@ export function RecipeCard({
     const [recipeUser, setRecipeUser] = useState();
     const [dietaryImages, setDietaryImages] = useState({});
     const [dietaryImagesText, setDietaryImagesText] = useState([]);
+    const [userHasVoted, setUserHasVoted] = useState(false);
     const [userRating, setUserRating] = useState(0);
 
     useEffect(() => {
@@ -54,11 +55,11 @@ export function RecipeCard({
                     if (recipeDoc.exists) {
                         const recipeData = recipeDoc.data();
                         setCurrentRecipe(recipeData);
+
                         const { rating_count, rating_sum } = recipeData;
+
                         setUserRating(
-                            rating_count && !isNaN(rating_count)
-                                ? rating_sum / rating_count
-                                : 0
+                            recipeData.rating ? rating_sum / rating_count : 0
                         );
 
                         const userDoc = await firestore()
@@ -85,6 +86,18 @@ export function RecipeCard({
                         collectionsForUser.push({ data: data, id: doc.id });
                     });
                     setCurrentCollections(collectionsForUser);
+
+                    const userVoteDoc = await firestore()
+                        .collection("Users")
+                        .doc(user)
+                        .get();
+
+                    if (userVoteDoc.exists) {
+                        const userVoteData = userVoteDoc.data();
+                        if (userVoteData.voted_recipes.includes(id)) {
+                            setUserHasVoted(true);
+                        }
+                    }
                 } catch (err) {
                     console.error(err);
                 }
@@ -135,6 +148,7 @@ export function RecipeCard({
                     newAverageRating = 5;
                 }
                 setUserRating(newAverageRating);
+                setUserHasVoted(true);
 
                 await firestore().collection("Recipes").doc(id).update({
                     rating: newAverageRating,
@@ -156,11 +170,11 @@ export function RecipeCard({
                 <Text className='my-2 font-medium text-lg'>
                     {currentRecipe.title}
                 </Text>
-
                 <View className='mb-4'>
-                    <StarRatingVote
+                    <StarRating
                         rating={userRating}
-                        onRatingChange={handleRatingChange}
+                        handleRatingChange={handleRatingChange}
+                        userHasVoted={userHasVoted}
                     />
                 </View>
 

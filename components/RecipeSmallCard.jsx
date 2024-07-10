@@ -64,6 +64,16 @@ export function RecipeSmallCard({
           resizeMode="cover"
           className="justify-between w-full h-40"
         >
+          {data.trending ? (
+            <View className="absolute top-0 left-0 ml-[-12] mt-[-15]">
+              <Image
+                className="w-8 h-8"
+                source={{
+                  uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/Recipes%2Ftrending-icon1.png?alt=media&token=7f922d7a-5e37-4d6b-946f-47b0675d88ba",
+                }}
+              />
+            </View>
+          ) : null}
           <View className="bg-orange-500 rounded-lg p-1 items-end self-end mt-2 mr-2">
             <Text className="text-white">{formatCookTime(data.cook_time)}</Text>
           </View>

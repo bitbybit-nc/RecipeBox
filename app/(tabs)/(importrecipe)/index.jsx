@@ -56,6 +56,7 @@ export default function RecipePreview() {
     title: "",
     uid: user.uid,
     timestamp: firestore.FieldValue.serverTimestamp(),
+    trending: false,
   });
 
   useEffect(() => {
@@ -210,6 +211,7 @@ export default function RecipePreview() {
           title: "",
           uid: user._user.uid,
           timestamp: firestore.FieldValue.serverTimestamp(),
+          trending: false,
         });
         setIngredientText("");
         setCookingMethodText("");

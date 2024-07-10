@@ -11,6 +11,11 @@ function Layout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="profile-edit" options={{ headerShown: false }} />
+      <Stack.Screen name="recipe" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="edit-recipe/[id]"
+        options={{ title: "Edit Recipe" }}
+      />
     </Stack>
   );
 }

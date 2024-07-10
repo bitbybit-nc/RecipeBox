@@ -183,7 +183,7 @@ function EditRecipeCard() {
                     text: "OK",
                     onPress: () =>
                       router.navigate({
-                        pathname: "/(collections)",
+                        pathname: "/(searchrecipe)",
                       }),
                   },
                 ],

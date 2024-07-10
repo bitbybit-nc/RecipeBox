@@ -1,5 +1,5 @@
 import { CollectionList } from "@/components/CollectionList";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { Link, router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -14,64 +14,7 @@ import {
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
 import { firebase } from "@react-native-firebase/auth";
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    // padding: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "bold",
-    // marginBottom: 16,
-    textAlign: "center",
-  },
-  addButton: {
-    position: "centre",
-    bottom: 32,
-    left: "50%",
-    transform: [{ translateX: -50 }],
-    backgroundColor: "#FF9F00",
-    borderRadius: 999,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    // paddingVertical: 12,
-    // paddingHorizontal: 24,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    // paddingHorizontal: 16,
-  },
-
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    // paddingHorizontal: 16,
-    // marginBottom: 16,
-  },
-  collectionItem: {
-    width: "48%",
-    // marginBottom: 16,
-  },
-});
+import { Feather } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const { updatedCollection, collectionAdded } = useLocalSearchParams();
@@ -79,13 +22,24 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [empty, setEmpty] = useState(false);
   const user = firebase.auth().currentUser;
+  const navigation = useNavigation();
 
   useEffect(() => {
+    navigation.setOptions({
+      unmountOnBlur: true,
+      headerRight: () => (
+        <Pressable onPress={handleAddCollection}>
+          <Feather name="plus" size={24} color="black" />
+        </Pressable>
+      ),
+    });
+
     setLoading(true);
     setEmpty(false);
 
     firestore()
       .collection("Collections")
+      .where("user_id", "==", user.uid)
       .onSnapshot((querySnapshot) => {
         const collectionsList = [];
         querySnapshot.forEach((documentSnapshot) => {
@@ -95,25 +49,26 @@ export default function HomeScreen() {
           });
         });
 
-        const filteredList = collectionsList.filter((collection) => {
-          return collection.data.user_id === user.uid;
-        });
-
-        if (filteredList.length === 0) {
+        if (collectionsList.length === 0) {
           setEmpty(true);
         }
 
-        setCollections(filteredList);
-        setLoading(false);
-      })
-    
-  }, [updatedCollection, collectionAdded]);
+        const findMyRecipe = collectionsList.filter(
+          (collection) => collection.data.name === "My Recipes"
+        );
+        const filtered = collectionsList.filter(
+          (collection) => collection.data.name !== "My Recipes"
+        );
 
+        setCollections([...findMyRecipe, ...filtered]);
+        setLoading(false);
+      });
+  }, [updatedCollection, collectionAdded]);
 
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="small" />
       </View>
     );
   }
@@ -132,7 +87,7 @@ export default function HomeScreen() {
         ) : (
           <View className="flex-wrap flex-row gap-4">
             {collections.map((collection, index) => (
-              <View className="w-[174px]" key={index}>
+              <View className="w-[45%]" key={index}>
                 <CollectionList
                   collection={collection.data}
                   id={collection.id}
@@ -143,17 +98,6 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
-
-      <View className="items-center">
-        <Pressable
-          className="p-2 bg-orange-400 w-40 rounded-full absolute bottom-2 items-center"
-          onPress={handleAddCollection}
-        >
-          <Text className="text-white text-center text-lg font-medium leading-6">
-            Add Collection
-          </Text>
-        </Pressable>
-      </View>
     </View>
   );
 }

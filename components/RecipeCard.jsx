@@ -17,7 +17,6 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StarRating } from "../components/StarRating";
 
-
 export function RecipeCard({
   id,
   user,
@@ -26,93 +25,89 @@ export function RecipeCard({
   location,
   updatedRecipe,
 }) {
-
-    const [currentRecipe, setCurrentRecipe] = useState({});
-    const [currentCollections, setCurrentCollections] = useState([]);
-    const [recipeUser, setRecipeUser] = useState();
-    const [dietaryImages, setDietaryImages] = useState({});
-    const [dietaryImagesText, setDietaryImagesText] = useState([]);
-    const [userHasVoted, setUserHasVoted] = useState(false);
-    const [userRating, setUserRating] = useState(0);
-
+  const [currentRecipe, setCurrentRecipe] = useState({});
+  const [currentCollections, setCurrentCollections] = useState([]);
+  const [recipeUser, setRecipeUser] = useState();
+  const [dietaryImages, setDietaryImages] = useState({});
+  const [dietaryImagesText, setDietaryImagesText] = useState([]);
+  const [userHasVoted, setUserHasVoted] = useState(false);
+  const [userRating, setUserRating] = useState(0);
 
   useEffect(() => {
-        const fetchData = async () => {
-            if (id) {
-                try {
-                    const dietaryCategory = await firestore()
-                        .collection("Dietary_needs")
-                        .get();
-                    const images = {};
-                    const text = {};
+    const fetchData = async () => {
+      if (id) {
+        try {
+          const dietaryCategory = await firestore()
+            .collection("Dietary_needs")
+            .get();
+          const images = {};
+          const text = {};
 
-                    dietaryCategory.forEach((doc) => {
-                        const data = doc.data();
-                        images[data.slug] = data.image_url;
-                        text[data.slug] = data.display_name;
-                    });
+          dietaryCategory.forEach((doc) => {
+            const data = doc.data();
+            images[data.slug] = data.image_url;
+            text[data.slug] = data.display_name;
+          });
 
-                    setDietaryImages(images);
-                    setDietaryImagesText(text);
+          setDietaryImages(images);
+          setDietaryImagesText(text);
 
-                    const recipeDoc = await firestore()
-                        .collection("Recipes")
-                        .doc(id)
-                        .get();
-                    if (recipeDoc.exists) {
-                        const recipeData = recipeDoc.data();
-                        setCurrentRecipe(recipeData);
+          const recipeDoc = await firestore()
+            .collection("Recipes")
+            .doc(id)
+            .get();
+          if (recipeDoc.exists) {
+            const recipeData = recipeDoc.data();
+            setCurrentRecipe(recipeData);
 
-                        const { rating_count, rating_sum } = recipeData;
+            const { rating_count, rating_sum } = recipeData;
 
-                        setUserRating(
-                            recipeData.rating ? rating_sum / rating_count : 0
-                        );
+            setUserRating(recipeData.rating ? rating_sum / rating_count : 0);
 
-                        const userDoc = await firestore()
-                            .collection("Users")
-                            .where("uid", "==", recipeData.uid)
-                            .get();
-                        const userForRecipe = [];
-                        userDoc.forEach((doc) => {
-                            const data = doc.data();
-                            userForRecipe.push(data);
-                        });
-                        setRecipeUser(userForRecipe[0]);
-                    }
+            const userDoc = await firestore()
+              .collection("Users")
+              .where("uid", "==", recipeData.uid)
+              .get();
+            const userForRecipe = [];
+            userDoc.forEach((doc) => {
+              const data = doc.data();
+              userForRecipe.push(data);
+            });
+            setRecipeUser(userForRecipe[0]);
+          }
 
-                    const collectionsDoc = await firestore()
-                        .collection("Collections")
-                        .where("recipes_list", "array-contains", id)
-                        .where("user_id", "==", user)
-                        .get();
+          const collectionsDoc = await firestore()
+            .collection("Collections")
+            .where("recipes_list", "array-contains", id)
+            .where("user_id", "==", user)
+            .get();
 
-                    const collectionsForUser = [];
-                    collectionsDoc.forEach((doc) => {
-                        const data = doc.data();
-                        collectionsForUser.push({ data: data, id: doc.id });
-                    });
-                    setCurrentCollections(collectionsForUser);
+          const collectionsForUser = [];
+          collectionsDoc.forEach((doc) => {
+            const data = doc.data();
+            collectionsForUser.push({ data: data, id: doc.id });
+          });
+          setCurrentCollections(collectionsForUser);
 
-                    const userVoteDoc = await firestore()
-                        .collection("Users")
-                        .doc(user)
-                        .get();
+          const userVoteDoc = await firestore()
+            .collection("Users")
+            .doc(user)
+            .get();
 
-                    if (userVoteDoc.exists) {
-                        const userVoteData = userVoteDoc.data();
-                        if (userVoteData.voted_recipes.includes(id)) {
-                            setUserHasVoted(true);
-                        }
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
+          if (userVoteDoc.exists) {
+            const userVoteData = userVoteDoc.data();
+            if (userVoteData.voted_recipes.includes(id)) {
+              setUserHasVoted(true);
             }
-        };
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
 
-        fetchData();
-    }, [id, collectionAdded, navigation, updatedRecipe]);
+    fetchData();
+  }, [id, collectionAdded, navigation, updatedRecipe]);
 
   const formatCookTime = (mins) => {
     if (mins > 60) {
@@ -129,8 +124,44 @@ export function RecipeCard({
   const handleBack = () => {
     router.back();
   };
-  
-     
+
+  const handleRatingChange = async (newRating) => {
+    try {
+      await firestore()
+        .collection("Recipes")
+        .doc(id)
+        .update({
+          rating_count: firestore.FieldValue.increment(1),
+          rating_sum: firestore.FieldValue.increment(newRating),
+        });
+
+      const updatedRecipeDoc = await firestore()
+        .collection("Recipes")
+        .doc(id)
+        .get();
+
+      if (updatedRecipeDoc.exists) {
+        const updatedRecipeData = updatedRecipeDoc.data();
+        setCurrentRecipe(updatedRecipeData);
+
+        const newRatingSum = updatedRecipeData.rating_sum;
+        const newRatingCount = updatedRecipeData.rating_count;
+        const newAverageRating = Math.ceil(newRatingSum / newRatingCount);
+
+        if (newAverageRating > 5) {
+          newAverageRating = 5;
+        }
+        setUserRating(newAverageRating);
+        setUserHasVoted(true);
+
+        await firestore().collection("Recipes").doc(id).update({
+          rating: newAverageRating,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <ScrollView className="bg-white relative">
@@ -246,9 +277,15 @@ export function RecipeCard({
             </View>
           </View>
 
-          <Text className="my-2 font-medium text-lg">
-            {currentRecipe.title}
-          </Text>
+          <Text className="font-medium text-lg">{currentRecipe.title}</Text>
+
+          <View className="mb-4">
+            <StarRating
+              rating={userRating}
+              handleRatingChange={handleRatingChange}
+              userHasVoted={userHasVoted}
+            />
+          </View>
 
           <View className=" flex-row">
             <View
@@ -318,7 +355,7 @@ export function RecipeCard({
             </Text>
           </View>
 
-          <View className="w-full mb-4">
+          <View className="w-full mb-4 mt-3">
             <View className="flex-row items-center">
               <MaterialCommunityIcons
                 name="chef-hat"
@@ -356,4 +393,3 @@ export function RecipeCard({
     </ScrollView>
   );
 }
-

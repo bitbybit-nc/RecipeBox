@@ -1,34 +1,35 @@
-import { View, Text } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { View, Text, Pressable } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
 
-export function StarRating({ rating }) {
-  const starIcons = [];
-  const fullStars = Math.floor(rating);
-  const isThereHalfStars = rating.toString().indexOf(".");
+export function StarRating({ rating, onRatingChange }) {
+    const starIcons = [];
+    const ceilRating = Math.ceil(rating);
 
-  for (let i = 0; i < fullStars; i++) {
-    starIcons.push(
-      <FontAwesome key={i} name="star" size={16} color="#708090" />
+    for (let i = 1; i <= 5; i++) {
+        starIcons.push(
+            <Pressable key={i} onPress={() => onRatingChange(i)}>
+                <FontAwesome
+                    name={i <= ceilRating ? "star" : "star-o"}
+                    size={24}
+                    color='#708090'
+                />
+            </Pressable>
+        );
+    }
+
+    return (
+        <View>
+            {rating === NaN ? (
+                <View className='flex-row mt-1'>
+                    {starIcons}
+                    <Text className='ml-2 text-black'>0</Text>
+                </View>
+            ) : (
+                <View className='flex-row mt-1'>
+                    {starIcons}
+                    <Text className='ml-2 text-black'>{ceilRating}</Text>
+                </View>
+            )}
+        </View>
     );
-  }
-  if (isThereHalfStars === 1) {
-    starIcons.push(
-      <FontAwesome
-        key={"halfstar-1"}
-        name="star-half"
-        size={16}
-        color="#708090"
-      />
-    );
-  }
-
-  return (
-    <View className="mt-1">
-      {rating === 0 ? (
-        <Text className="text-xs text-slate-500">No Ratings Yet</Text>
-      ) : (
-        <View className="flex-row gap-0.5">{starIcons}</View>
-      )}
-    </View>
-  );
 }

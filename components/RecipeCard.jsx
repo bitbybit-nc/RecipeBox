@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import firestore from "@react-native-firebase/firestore";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
+import { StarRating } from "../components/StarRating";
 
 export function RecipeCard({
     id,
@@ -25,6 +26,7 @@ export function RecipeCard({
     const [recipeUser, setRecipeUser] = useState();
     const [dietaryImages, setDietaryImages] = useState({});
     const [dietaryImagesText, setDietaryImagesText] = useState([]);
+    const [userRating, setUserRating] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -52,6 +54,10 @@ export function RecipeCard({
                     if (recipeDoc.exists) {
                         const recipeData = recipeDoc.data();
                         setCurrentRecipe(recipeData);
+                        const { rating_count, rating_sum } = recipeData;
+                        setUserRating(
+                            rating_count > 0 ? rating_sum / rating_count : 0
+                        );
 
                         const userDoc = await firestore()
                             .collection("Users")
@@ -77,9 +83,6 @@ export function RecipeCard({
                         collectionsForUser.push({ data: data, id: doc.id });
                     });
                     setCurrentCollections(collectionsForUser);
-
-
-
                 } catch (err) {
                     console.error(err);
                 }
@@ -101,6 +104,39 @@ export function RecipeCard({
         }
     };
 
+    const handleRatingChange = async (newRating) => {
+        try {
+            await firestore()
+                .collection("Recipes")
+                .doc(id)
+                .update({
+                    rating_count: firestore.FieldValue.increment(1),
+                    rating_sum: firestore.FieldValue.increment(newRating),
+                });
+
+            const updatedRecipeDoc = await firestore()
+                .collection("Recipes")
+                .doc(id)
+                .get();
+
+            if (updatedRecipeDoc.exists) {
+                const updatedRecipeData = updatedRecipeDoc.data();
+                setCurrentRecipe(updatedRecipeData);
+                console.log(updatedRecipeData);
+                const newRatingSum = updatedRecipeData.rating_sum;
+                const newRatingCount = updatedRecipeData.rating_count;
+                const newAverageRating = Math.ceil(newRatingSum / newRatingCount);
+                setUserRating(newAverageRating);
+
+                await firestore().collection("Recipes").doc(id).update({
+                    rating: newAverageRating
+                });
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     return (
         <ScrollView>
             <View className='flex-1 mx-2 px-3 py-3'>
@@ -108,10 +144,15 @@ export function RecipeCard({
                     className='w-full h-52 rounded-lg'
                     source={{ uri: currentRecipe.recipe_img_url }}
                 />
-
-                <Text className='my-2 font-medium text-lg'>
+                <Text className='text-lg font-medium text-black mt-2'>
                     {currentRecipe.title}
                 </Text>
+                <View className='mb-4'>
+                    <StarRating
+                        rating={userRating}
+                        onRatingChange={handleRatingChange}
+                    />
+                </View>
 
                 <View className='flex-row mb-3 '>
                     {currentRecipe.dietary_needs &&
@@ -191,9 +232,7 @@ export function RecipeCard({
                                             size={24}
                                             color='black'
                                         />
-                                        <Text>
-                                            {currentRecipe.saved_count}
-                                        </Text>
+                                        <Text>{currentRecipe.saved_count}</Text>
                                         <Text>Saved</Text>
                                     </View>
                                 )}

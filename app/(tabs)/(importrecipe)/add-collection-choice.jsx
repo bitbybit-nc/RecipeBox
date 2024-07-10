@@ -13,22 +13,33 @@ function AddCollectionToNewRecipe() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const collectionsSnapshot = await firestore()
-        .collection("Collections")
-        .where("user_id", "==", user.uid)
-        .get();
-      const collections = [];
-      collectionsSnapshot.forEach((doc) => {
-        collections.push({ data: doc.data(), id: doc.id });
-      });
-      if (currentSelected) {
-        const filtered = collections.filter(
-          (collection) => collection.id !== currentSelected
-        );
+      try {
+        const collectionsSnapshot = await firestore()
+          .collection("Collections")
+          .where(
+            firestore.Filter.and(
+              firestore.Filter("user_id", "==", user.uid),
+              firestore.Filter("name", "!=", "My Recipes")
+            )
+          )
+          .get();
+        const collections = [];
+        collectionsSnapshot.forEach((doc) => {
+          collections.push({ data: doc.data(), id: doc.id });
+        });
+        if (currentSelected) {
+          const filtered = collections.filter(
+            (collection) => collection.id !== currentSelected
+          );
 
-        setCollectionList(filtered);
-      } else {
-        setCollectionList(collections);
+          setCollectionList(filtered);
+          setSelectedCollection(filtered[0].id);
+        } else {
+          setCollectionList(collections);
+          setSelectedCollection(collections[0].id);
+        }
+      } catch (err) {
+        console.log(err);
       }
     };
     fetchData();

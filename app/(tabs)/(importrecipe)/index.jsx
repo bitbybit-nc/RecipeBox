@@ -36,8 +36,9 @@ export default function RecipePreview() {
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFromPencil, setIsLoadingFromPencil] = useState(false);
-  const [ingredientText, setIngredientText] = useState('')
-  const [cookingMethodText, setCookingMethodText] = useState('')
+  const [ingredientText, setIngredientText] = useState("");
+  const [myRecipesCol, setMyRecipesCol] = useState("");
+  const [cookingMethodText, setCookingMethodText] = useState("");
 
   const [newRecipe, setNewRecipe] = useState({
     category: [],
@@ -76,6 +77,22 @@ export default function RecipePreview() {
       }
     };
     fetchDietaryOptions();
+
+    const fetchMyRecipeCollection = async () => {
+      const myRecipeCol = await firestore()
+        .collection("Collections")
+        .where(
+          firestore.Filter.and(
+            firestore.Filter("user_id", "==", user.uid),
+            firestore.Filter("name", "==", "My Recipes")
+          )
+        )
+        .get();
+      myRecipeCol.forEach((doc) => {
+        setMyRecipesCol(doc.id);
+      });
+    };
+    fetchMyRecipeCollection();
   }, [isFocused]);
 
   useEffect(() => {
@@ -87,22 +104,27 @@ export default function RecipePreview() {
       recipe_img_url: image,
       cook_time: formatCookTime(cookTime),
       ingredients: ingredientText,
-      cooking_method: cookingMethodText
+      cooking_method: cookingMethodText,
     }));
   }, [dietariesChosen, image, cookTime, ingredientText, cookingMethodText]);
 
   useEffect(() => {
-    if (params.currentSelected) {
+    console.log(params.currentSelected, "<<<<<< PARAMS");
+    if (
+      params.currentSelected &&
+      params.currentSelected !== undefined &&
+      params.currentSelected !== "undefined"
+    ) {
       firestore()
         .collection("Collections")
         .doc(params.currentSelected)
         .get()
         .then((doc) => {
-          setCurrentSelectionCollection(doc.data());
+          setCurrentSelectionCollection({ id: doc.id, data: doc.data() });
         });
     }
   }, [params.currentSelected]);
-
+  console.log(currentSelectionCollection);
   const formatCookTime = (time) => {
     const hoursInMins = Number(time.hours) * 60;
     return Number(time.mins) + hoursInMins;
@@ -136,15 +158,12 @@ export default function RecipePreview() {
         !image ||
         (newRecipe.title === "") | (newRecipe.ingredients === "") ||
         newRecipe.cooking_method === "" ||
-        newRecipe.cook_time === "" ||
-        !currentSelectionCollection
+        newRecipe.cook_time === ""
       ) {
         if (!image) {
           alert("Please upload an image");
         } else if (newRecipe.title === "") {
           alert("Please add a recipe title");
-        } else if (!currentSelectionCollection) {
-          alert("Please add a collection to add this recipe to");
         } else if (newRecipe.ingredients === "") {
           alert("Please add ingredients for this recipe");
         } else if (newRecipe.cooking_method === "") {
@@ -155,9 +174,24 @@ export default function RecipePreview() {
       } else {
         const result = await firestore().collection("Recipes").add(newRecipe);
         const recipeId = result.id;
+
+        if (
+          params.currentSelected &&
+          params.currentSelected !== "undefined" &&
+          params.currentSelected !== undefined
+        ) {
+          console.log("HERE");
+          await firestore()
+            .collection("Collections")
+            .doc(params.currentSelected)
+            .update({
+              recipes_list: FieldValue.arrayUnion(recipeId),
+            });
+        }
+
         await firestore()
           .collection("Collections")
-          .doc(params.currentSelected)
+          .doc(myRecipesCol)
           .update({
             recipes_list: FieldValue.arrayUnion(recipeId),
           });
@@ -177,21 +211,26 @@ export default function RecipePreview() {
           uid: user._user.uid,
           timestamp: firestore.FieldValue.serverTimestamp(),
         });
-        setIngredientText('')
-        setCookingMethodText('')
+        setIngredientText("");
+        setCookingMethodText("");
         setCurrentSelectionCollection(null);
         setCookTime({ hours: 0, mins: 0 });
         setDietariesChosen([]);
         setImage(null);
+
         router.navigate({
-          pathname: `/(collections)/collection/${params.currentSelected}`,
+          pathname: `/(collections)/collection/${
+            currentSelectionCollection
+              ? currentSelectionCollection.id
+              : myRecipesCol
+          }`,
           params: {
             user: user.uid,
             location: "(collections)",
             recipeId: recipeId,
           },
         });
-        router.setParams({
+        navigation.setParams({
           currentSelected: undefined,
         });
       }
@@ -263,6 +302,7 @@ export default function RecipePreview() {
       navigation.setParams({
         currentSelected: undefined,
       });
+      setCurrentSelectionCollection(null);
     }
   };
 
@@ -345,7 +385,9 @@ export default function RecipePreview() {
                   Chosen:
                 </Text>
                 <View className="bg-slate-200 rounded-md p-2 block">
-                  <Text className="">{currentSelectionCollection.name}</Text>
+                  <Text className="">
+                    {currentSelectionCollection.data?.name}
+                  </Text>
                 </View>
               </View>
               <Pressable className="mr-5" onPress={resetCollections}>
@@ -417,7 +459,7 @@ export default function RecipePreview() {
             value={newRecipe.category}
           />
         </View>
-        <View className="my-3">
+        <View className="mt-3 mb-8">
           <View className="flex-row gap-x-3 items-center">
             <FontAwesome6 name="clock" size={24} color="black" />
             <View className="items-center flex-row">
@@ -448,8 +490,23 @@ export default function RecipePreview() {
             </View>
           </View>
         </View>
-        <TextFromScreenshot setText={setIngredientText} fieldName={'Ingredients'}/>
-        <TextFromScreenshot setText={setCookingMethodText} fieldName={'Cooking'}/>
+
+        <TextFromScreenshot
+          setText={setIngredientText}
+          fieldName={"Ingredients"}
+          value={ingredientText}
+          placeholder={
+            "8 oz pasta\n2 tablespoons olive oil\n3 cloves garlic, minced\n2 cups cherry tomatoes, halved\n2 cups fresh spinach\nSalt, to taste\nPepper, to taste\nRed pepper flakes, to taste\nFresh basil, for garnish"
+          }
+        />
+        <TextFromScreenshot
+          setText={setCookingMethodText}
+          fieldName={"Cooking"}
+          value={cookingMethodText}
+          placeholder={
+            "1. Cook the pasta according to package instructions until al dente.\n2. While the pasta is cooking, heat the olive oil in a large pan over medium heat.\n3. Add the garlic and cook for 1 minute, until fragrant.\n4. Stir in the cherry tomatoes and cook for 5-7 minutes, until they start to soften.\n5. Add the spinach and cook until wilted.\n6. Drain the pasta and add it to the pan with the vegetables.\n7. Toss everything together and season with salt, pepper, and red pepper flakes.\n8. Serve immediately, garnished with fresh basil if desired."
+          }
+        />
         <Pressable
           className="mt-5 p-3 bg-orange-400 w-full rounded-md"
           onPress={handleRecipeSubmit}

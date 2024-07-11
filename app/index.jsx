@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable } from "react-native";
+import { View, Text, TextInput, Pressable, Image } from "react-native";
 import auth from "@react-native-firebase/auth";
 import { HelloWave } from "@/components/HelloWave";
 import { SmallErrorNotice } from "@/components/SmallErrorNotice";
@@ -35,9 +35,12 @@ export default function SigninPage() {
 
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-medium text-black">
-        Login <HelloWave />{" "}
-      </Text>
+      <Image
+        className="w-[180] h-[50] mb-2 self-center justify-center"
+        source={{
+          uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/logo.png?alt=media&token=50bf93ef-63c5-4d56-8b6e-7cf1ffbbf2e8",
+        }}
+      />
 
       <View className="m-3 p-3 w-screen items-center flex-row justify-center">
         <View className="w-9/12">

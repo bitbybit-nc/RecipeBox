@@ -62,7 +62,7 @@ export function RecipeSmallDisplay({ recipe }) {
         </View>
       </ImageBackground>
 
-      <StarRating rating={recipe.rating} userHasVoted={userHasVoted} />
+      <StarRating rating={recipe.rating} />
       <Text className="text-left pt-1 leading-4 font-medium">
         {recipe.title}
       </Text>

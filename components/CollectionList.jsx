@@ -93,7 +93,7 @@ export function CollectionList({ collection, id, user }) {
             ) : recipeImage.length === 1 ? (
               <Image
                 className="w-[155px] h-[155px]"
-                source={{ uri: singleRecipe }}
+                source={{ uri: recipeImage[0] }}
               />
             ) : (
               fillArray(recipeImage)

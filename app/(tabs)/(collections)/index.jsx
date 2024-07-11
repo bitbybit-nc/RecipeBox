@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Pressable,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
@@ -27,6 +28,14 @@ export default function HomeScreen() {
   useEffect(() => {
     navigation.setOptions({
       unmountOnBlur: true,
+      headerLeft: () => (
+        <Image
+          className="w-[100] h-[25] mb-2 self-center justify-center"
+          source={{
+            uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/logo.png?alt=media&token=50bf93ef-63c5-4d56-8b6e-7cf1ffbbf2e8",
+          }}
+        />
+      ),
       headerRight: () => (
         <Pressable onPress={handleAddCollection}>
           <Feather name="plus" size={24} color="black" />

@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Pressable,
   TextInput,
+  Image,
 } from "react-native";
 
 import { Link, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
@@ -128,6 +129,14 @@ export default function SearchRecipesPage() {
   return (
     <View className="flex-1 bg-white">
       <View className="mx-4 mt-16 mb-2">
+        <View>
+          <Image
+            className="w-[130] h-[34] mb-2 self-center justify-center"
+            source={{
+              uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/logo.png?alt=media&token=50bf93ef-63c5-4d56-8b6e-7cf1ffbbf2e8",
+            }}
+          />
+        </View>
         <View className="items-center mx-1">
           <View className="px-3 w-full py-5 items-center bg-slate-100 rounded-full flex-row gap-x-2 border border-slate-200">
             <FontAwesome name="search" size={15} color="grey" />

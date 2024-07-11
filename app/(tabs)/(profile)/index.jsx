@@ -72,8 +72,14 @@ export default function MyProfilePage() {
   return (
     <ScrollView className="flex-1 pt-16 px-2 bg-white">
       <View className="px-4">
-        <View className="flex-row items-center justify-between mb-4 ">
-          <Text className="text-lg font-semibold">{username}</Text>
+        <View className="flex-row items-center justify-between">
+          <Image
+            className="w-[130] h-[34] mb-2 self-center justify-center"
+            source={{
+              uri: "https://firebasestorage.googleapis.com/v0/b/recipebox-3895d.appspot.com/o/logo.png?alt=media&token=50bf93ef-63c5-4d56-8b6e-7cf1ffbbf2e8",
+            }}
+          />
+
           <View className="w-8 h-8 rounded-full bg-orange-400 justify-center items-center">
             <Link href={{ pathname: "/profile-edit", params: { username } }}>
               <Icon name="pencil" style={{ color: "white" }} />
@@ -87,13 +93,13 @@ export default function MyProfilePage() {
             <View>
               <Text className="text-leftleading-4 text-sm font-semibold">
                 {displayNameTest}
-                </Text>
-                <Text className="text-sm w-60 text-justify">
-            Vegetarian guru, looking to connect with the entire world, through
-            our one unifying language, FOOD!
-          </Text>
-          </View>
-                {/* <Text className="font-normal"> {displayNameTest}</Text>
+              </Text>
+              <Text className="text-sm w-60 text-justify">
+                Vegetarian guru, looking to connect with the entire world,
+                through our one unifying language, FOOD!
+              </Text>
+            </View>
+            {/* <Text className="font-normal"> {displayNameTest}</Text>
               </Text>
             </View>
 

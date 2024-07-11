@@ -8,7 +8,7 @@
     "scheme": "com.bitbybitnorthcoders.RecipeBox",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/recipe-box-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

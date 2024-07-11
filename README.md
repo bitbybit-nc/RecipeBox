@@ -138,38 +138,7 @@ ios/
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-6. For running of the app:
-IOS Simulator: 
-Bundle ID:   com.bitbybitnorthcoders.RecipeBox
-
-LATEST BUILD URL: https://expo.dev/accounts/bitbybit-northcoders/projects/recipebox/builds/c8dc7600-ee4c-4130-a71b-a2e9a0a32d82
-
-- For this to work you will need to have configured your XCode and have a simulator running.
-- Use the link below in your browser > click download >  Unzip > Drag unzipped file onto your simulator (this may take a minute or two to show as an app on your phone) > Open the app
-- Run ‘npx expo start’ in your project terminal to see your project on the simulator
-
-(if needed:)
-Creating a new build: 
-IOS: eas build --platform ios --profile development
-________________________________________________________________________
-Android Emulator:
-Package Name: com.bitbybitnorthcoders.RecipeBox
-
-LATEST BUILD URL ANDROID: https://expo.dev/accounts/bitbybit-northcoders/projects/recipebox/builds/e18301f8-534a-47fb-b1bf-a23d7d313c30
-
-- For this to work you will need to have configured your Android Studio and have a simulator running.
-- Copy and paste the link into the in-app browser > Click Install > Follow instructions to install app onto phone
-- Run ‘npx expo start’ in your project terminal to view the project on the your simulator 
-
-(if needed:)
-Creating a new build: 
-Android: eas build --platform android --profile development
-________________________________________________________________________
-
-Firebase files: 
-- Check Package.JSON to see which dependencies are installed before added new ones
-
-7. To work on the files: edit the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+6. To work on the files: edit the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
 ## Get a fresh project
 When you're ready, run:

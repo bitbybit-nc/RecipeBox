@@ -96,7 +96,20 @@ Profile:
 - Can view a list of the total recipes the user imported in a 'My Recipes' list
 - Can click the 'Log Out' button to log the user out and redirect back to the Login page
 
-## Get started
+## Screenshots
+
+<img src="https://github.com/user-attachments/assets/0a1ad9dd-a761-466a-a269-c33ab3bd53e9" width="200" />
+
+<img src="https://github.com/user-attachments/assets/f3bb19ef-250a-440d-951a-4c2425341dd8" width="200" />
+
+<img src="https://github.com/user-attachments/assets/51443ed6-115e-4be5-b372-e70b1897bdbe" width="200" />
+
+<img src="https://github.com/user-attachments/assets/07541e08-4046-49a3-80a0-4d9f551f36bd" width="200" />
+
+
+
+
+# Get started
 1. Install dependencies
    ```bash
    npm install
